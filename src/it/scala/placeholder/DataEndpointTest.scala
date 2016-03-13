@@ -1,17 +1,17 @@
 package placeholder
 
-import com.twitter.finagle.http.{Response, Method, Request}
+import com.twitter.finagle.http.{Method, Request, Response}
 import com.twitter.util.Await
 import placeholder.base.IntegrationTestBase
 
-class StatusEndpointTest extends IntegrationTestBase {
+class DataEndpointTest extends IntegrationTestBase {
 
   feature("Server status endpoint") {
     scenario("returns server uptime") {
       Given("the server is running")
 
-      val path = "/status"
-      val responseFuture = performAdminRequest(Request(Method.Get, path))
+      val path = "/data"
+      val responseFuture = performGathererRequest(Request(Method.Get, path))
       When(s"I do a HTTP GET to '$path'")
 
       val response: Response = Await.result(responseFuture)

@@ -1,15 +1,15 @@
-package placeholder.base
+package placeholder
 
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import placeholder.{ Server, Status }
+import placeholder.base.SpecBase
 
 /**
  * Created by Jordi on 9-3-2016.
  */
-class ServerTest extends SpecBase with ScalatestRouteTest {
+class AdministratorTest extends SpecBase with ScalatestRouteTest {
 
   "The server" must {
-    "handle a GET on /status and return a positive uptime in milliseconds" in new Server {
+    "handle a GET on /status and return a positive uptime in milliseconds" in new Administrator {//Server {
       Get("/status") ~> routes ~> check {
         val status = responseAs[Status]
         val uptime = status.uptime
