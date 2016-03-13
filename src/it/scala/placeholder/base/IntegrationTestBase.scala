@@ -26,11 +26,11 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
   main.main(Array())
 
   override def beforeAll(): Unit = {
-    adminServerAddress = Await.result(main.getAdministratorAddress, 10.seconds)
+    adminServerAddress = Await.result(main.administrator.getServerAddress, 10.seconds)
     adminRequestHost = s"localhost:${adminServerAddress.getPort.toString}"
     adminClient = finagle.Http.newService(adminRequestHost)
 
-    gathererServerAddress = Await.result(main.getGathererAddress, 10.seconds)
+    gathererServerAddress = Await.result(main.gatherer.getServerAddress, 10.seconds)
     gathererRequestHost = s"localhost:${gathererServerAddress.getPort.toString}"
     gathererClient = finagle.Http.newService(gathererRequestHost)
   }

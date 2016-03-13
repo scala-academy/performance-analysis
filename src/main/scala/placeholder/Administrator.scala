@@ -6,7 +6,7 @@ import akka.pattern.ask
 /**
   * Created by Jordi on 13-3-2016.
   */
-trait Administrator extends Server {
+class Administrator extends Server {
 
   protected lazy val httpPort = adminHttpPort
 

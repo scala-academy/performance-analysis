@@ -5,7 +5,7 @@ import akka.http.scaladsl.server.Directives._
 /**
   * Created by Jordi on 13-3-2016.
   */
-trait DataGatherer extends Server {
+class DataGatherer extends Server  {
 
   protected lazy val httpPort = gathererHttpPort
 
