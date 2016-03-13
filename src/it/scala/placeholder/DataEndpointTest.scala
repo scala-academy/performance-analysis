@@ -17,6 +17,8 @@ class DataEndpointTest extends IntegrationTestBase {
       val response: Response = Await.result(responseFuture)
       response.statusCode shouldBe 200
       Then("the response should have statuscode 200")
+      response.contentString shouldBe "Data!"
+      And("""the response content string should be "Data!"""")
     }
   }
 }

@@ -11,8 +11,8 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 object Server {
@@ -30,9 +30,13 @@ trait Server extends Protocol with Config with SprayJsonSupport {
 
   protected def routes: Route
 
-  protected def serverPromise = Http().bindAndHandle(routes, httpInterface, httpPort)
+  protected def httpPort: Int
+
+  protected def httpInterface: String
 
   protected val log: LoggingAdapter = Logging(system, this.getClass)
+
+  protected def serverPromise = Http().bindAndHandle(routes, httpInterface, httpPort)
 
   serverPromise.onComplete {
     case Success(serverBinding) => log.info(s"Server ${this.getClass.getName} bound to ${serverBinding.localAddress}")

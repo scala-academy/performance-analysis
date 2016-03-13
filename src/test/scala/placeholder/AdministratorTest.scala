@@ -9,7 +9,7 @@ import placeholder.base.SpecBase
 class AdministratorTest extends SpecBase with ScalatestRouteTest {
 
   "The server" must {
-    "handle a GET on /status and return a positive uptime in milliseconds" in new Administrator {//Server {
+    "handle a GET on /status and return a positive uptime in milliseconds" in new Administrator {
       Get("/status") ~> routes ~> check {
         val status = responseAs[Status]
         val uptime = status.uptime

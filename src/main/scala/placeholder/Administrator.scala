@@ -8,6 +8,10 @@ import akka.pattern.ask
   */
 trait Administrator extends Server {
 
+  protected lazy val httpPort = adminHttpPort
+
+  protected lazy val httpInterface: String = adminHttpInterface
+
   protected val statusActor = system.actorOf(StatusActor.props)
 
   protected val routes = pathPrefix("status") {
