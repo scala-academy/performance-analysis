@@ -4,7 +4,7 @@ import java.net.InetSocketAddress
 
 import scala.concurrent.Future
 
-object Main extends App {//} with Administrator with DataGatherer {
+object Main extends App {
 
   val administrator = new Administrator {}
   val gatherer = new DataGatherer {}
