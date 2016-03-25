@@ -6,7 +6,7 @@ import placeholder.base.SpecBase
 /**
  * Created by Jordi on 9-3-2016.
  */
-class ConfigTest extends SpecBase {
+class ConfigSpec extends SpecBase {
   "Config" must {
     "read an int value for a normal config.httpConfig.admin.httpPort" in new Config {
       override lazy val config = ConfigFactory.load("normal.conf")

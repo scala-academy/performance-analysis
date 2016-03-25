@@ -9,7 +9,7 @@ import placeholder.base.ActorSpecBase
  */
 class StatusActorSpec(_system: ActorSystem) extends ActorSpecBase(_system) {
 
-  def this() = this(ActorSystem("RequestMatcherActor"))
+  def this() = this(ActorSystem("StatusActor"))
 
   "StatusActor" must {
     "reply with the uptime of the server" in {

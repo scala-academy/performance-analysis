@@ -17,14 +17,14 @@ import scala.util.{Failure, Success}
 
 object Server {
   protected implicit val system: ActorSystem = ActorSystem()
-  protected implicit val timeout: Timeout = Timeout(2, TimeUnit.SECONDS)
   protected implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val timeout: Timeout = Timeout(2, TimeUnit.SECONDS)
 }
 
 trait Server extends Protocol with Config with SprayJsonSupport {
   protected implicit def system = Server.system
 
-  protected implicit def timeout = Server.timeout
+  protected implicit def timeout: Timeout = Server.timeout
 
   protected implicit def materializer = Server.materializer
 
