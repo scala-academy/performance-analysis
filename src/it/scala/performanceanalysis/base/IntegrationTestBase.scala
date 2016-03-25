@@ -1,4 +1,4 @@
-package placeholder.base
+package performanceanalysis.base
 
 import java.net.InetSocketAddress
 
@@ -7,7 +7,7 @@ import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, Response}
 import com.twitter.util.Future
 import org.scalatest._
-import placeholder.Main
+import performanceanalysis.Main
 
 import scala.concurrent.Await
 import scala.concurrent.duration._

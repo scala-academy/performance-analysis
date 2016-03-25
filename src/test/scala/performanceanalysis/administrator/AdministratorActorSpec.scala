@@ -1,10 +1,10 @@
-package placeholder.administrator
+package performanceanalysis.administrator
 
 import akka.actor._
 import akka.testkit.{TestActor, TestProbe}
-import placeholder.LogParserActor.{Details, RequestDetails}
-import placeholder.administrator.AdministratorActor._
-import placeholder.base.ActorSpecBase
+import performanceanalysis.LogParserActor.{Details, RequestDetails}
+import performanceanalysis.administrator.AdministratorActor._
+import performanceanalysis.base.ActorSpecBase
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

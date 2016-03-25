@@ -1,4 +1,4 @@
-package placeholder.base
+package performanceanalysis.base
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}

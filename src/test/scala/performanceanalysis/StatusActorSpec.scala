@@ -1,8 +1,8 @@
-package placeholder
+package performanceanalysis
 
 import akka.actor.ActorSystem
 import akka.testkit.TestProbe
-import placeholder.base.ActorSpecBase
+import performanceanalysis.base.ActorSpecBase
 
 /**
  * Created by Jordi on 7-3-2016.

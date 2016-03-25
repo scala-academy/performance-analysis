@@ -1,7 +1,7 @@
-package placeholder
+package performanceanalysis
 
 import com.typesafe.config.ConfigFactory
-import placeholder.base.SpecBase
+import performanceanalysis.base.SpecBase
 
 /**
  * Created by Jordi on 9-3-2016.

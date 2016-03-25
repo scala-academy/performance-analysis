@@ -1,8 +1,8 @@
-package placeholder
+package performanceanalysis
 
 import com.twitter.finagle.http.{Method, Request, Response}
 import com.twitter.util.Await
-import placeholder.base.IntegrationTestBase
+import performanceanalysis.base.IntegrationTestBase
 
 class DataEndpointTest extends IntegrationTestBase {
 

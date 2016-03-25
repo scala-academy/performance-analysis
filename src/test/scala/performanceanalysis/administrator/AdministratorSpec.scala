@@ -1,12 +1,12 @@
-package placeholder.administrator
+package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.{TestActor, TestProbe}
-import placeholder.LogParserActor.Details
-import placeholder.Status
-import placeholder.administrator.AdministratorActor.{GetDetails, GetRegisteredComponents, RegisteredComponents}
-import placeholder.base.SpecBase
+import performanceanalysis.LogParserActor.Details
+import performanceanalysis.Status
+import performanceanalysis.administrator.AdministratorActor.{GetDetails, GetRegisteredComponents, RegisteredComponents}
+import performanceanalysis.base.SpecBase
 
 /**
   * Created by Jordi on 9-3-2016.

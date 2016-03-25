@@ -1,10 +1,10 @@
-package placeholder.administrator
+package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
-import placeholder.LogParserActor.RequestDetails
-import placeholder.Server
-import placeholder.administrator.AdministratorActor._
+import performanceanalysis.LogParserActor.RequestDetails
+import performanceanalysis.Server
+import performanceanalysis.administrator.AdministratorActor._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

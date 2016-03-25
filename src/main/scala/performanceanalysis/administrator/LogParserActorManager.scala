@@ -1,7 +1,7 @@
-package placeholder.administrator
+package performanceanalysis.administrator
 
 import akka.actor.{ActorContext, ActorLogging, ActorRef}
-import placeholder.{LogParserActor, Server}
+import performanceanalysis.{LogParserActor, Server}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

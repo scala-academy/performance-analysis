@@ -1,7 +1,7 @@
-package placeholder
+package performanceanalysis
 
-import placeholder.LogParserActor.Details
-import placeholder.administrator.AdministratorActor.RegisteredComponents
+import performanceanalysis.LogParserActor.Details
+import performanceanalysis.administrator.AdministratorActor.RegisteredComponents
 import spray.json.DefaultJsonProtocol
 
 case class Status(uptime: String)

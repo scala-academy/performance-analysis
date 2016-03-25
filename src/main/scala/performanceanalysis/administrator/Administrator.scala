@@ -1,12 +1,12 @@
-package placeholder.administrator
+package performanceanalysis.administrator
 
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.{HttpResponse, MessageEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
-import placeholder.LogParserActor.Details
-import placeholder.administrator.AdministratorActor.{GetDetails, GetRegisteredComponents, RegisteredComponents}
-import placeholder.{Server, Status, StatusActor}
+import performanceanalysis.LogParserActor.Details
+import performanceanalysis.administrator.AdministratorActor.{GetDetails, GetRegisteredComponents, RegisteredComponents}
+import performanceanalysis.{Server, Status, StatusActor}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
