@@ -1,4 +1,4 @@
-import scalariform.formatter.preferences._
+//import scalariform.formatter.preferences._
 
 name          := """scala-in-practise-base"""
 organization  := "com.github.scala-academy"
@@ -24,33 +24,25 @@ libraryDependencies ++= {
 
 lazy val root = project.in(file(".")).configs(IntegrationTest)
 Defaults.itSettings
-scalariformSettings
+//scalariformSettings
 Revolver.settings
-enablePlugins(JavaAppPackaging)
+//enablePlugins(JavaAppPackaging)
 
-ScalariformKeys.preferences := ScalariformKeys.preferences.value
-  .setPreference(AlignSingleLineCaseStatements, true)
-  .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
-  .setPreference(DoubleIndentClassDeclaration, true)
+//ScalariformKeys.preferences := ScalariformKeys.preferences.value
+//  .setPreference(AlignSingleLineCaseStatements, true)
+//  .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
+//  .setPreference(DoubleIndentClassDeclaration, true)
 
-initialCommands := """|import scalaz._
-                      |import Scalaz._
-                      |import akka.actor._
-                      |import akka.pattern._
-                      |import akka.util._
-                      |import scala.concurrent._
-                      |import scala.concurrent.duration._""".stripMargin
-
-publishMavenStyle := true
-publishArtifact in Test := false
-pomIncludeRepository := { _ => false }
-publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value)
-    Some("snapshots" at nexus + "content/repositories/snapshots")
-  else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-}
+//publishMavenStyle := true
+//publishArtifact in Test := false
+//pomIncludeRepository := { _ => false }
+//publishTo := {
+//  val nexus = "https://oss.sonatype.org/"
+//  if (isSnapshot.value)
+//    Some("snapshots" at nexus + "content/repositories/snapshots")
+//  else
+//    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+//}
 
 fork in run := true
 
