@@ -3,3 +3,8 @@ scala:
   - 2.11.7
 
 jdk: oraclejdk8
+
+env:
+  - CODACY_PROJECT_TOKEN=d43e539be410419a96367e23835ca5d7
+
+script: ./build.sh
