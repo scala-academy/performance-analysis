@@ -69,7 +69,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       this: ActorLogging =>
       override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
 
-      override def findLogParserActor(context: ActorContext, componentId: String): Future[Option[ActorRef]] = Future(Some(componentTestProbe.ref))
+      override def findLogParserActor(logParserActors: Map[String, ActorRef], componentId: String): Option[ActorRef] = Some(componentTestProbe.ref)
     }
     val adminActor = system.actorOf(Props(new AdministratorActor with TestLogParserActorManager))
     "request a LogHandlerActor for details and forward the result to the requester" in {

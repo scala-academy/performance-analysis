@@ -25,15 +25,5 @@ trait LogParserActorManager {
     context.actorOf(LogParserActor.props, LogParserActorManager.createActorName(componentId))
   }
 
-  def findLogParserActor(context: ActorContext, componentId: String): Future[Option[ActorRef]] = {
-    val searchString = s"${LogParserActorManager.createActorName(componentId)}"
-    val actorSearch = context.actorSelection(searchString).resolveOne()
-    actorSearch.map { ref =>
-      log.debug(s"""Actor $componentId found with search "$searchString" from ${context.self.path}""")
-      Some(ref)
-    }.recover { case _: Throwable =>
-      log.debug(s"""Actor $componentId not found with search "$searchString" from ${context.self.path}""")
-      None
-    }
-  }
+  def findLogParserActor(logParserActors: Map[String, ActorRef], componentId: String): Option[ActorRef] = logParserActors.get(componentId)
 }
