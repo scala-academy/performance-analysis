@@ -1,7 +1,7 @@
 package performanceanalysis.administrator
 
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{HttpResponse, MessageEntity, StatusCodes}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.pattern.ask
 import performanceanalysis.LogParserActor.Details
@@ -53,31 +53,36 @@ class Administrator extends Server {
 
   protected val routes = statusRoutes ~ componentsRoutes
 
-  private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case RegisteredComponents(componentIds) =>
-        val entityFuture = Marshal(RegisteredComponents(componentIds)).to[MessageEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+  private def handleGetComponents: Future[Any] => Future[HttpResponse] = {
+    val statusCodeFunction: Any => StatusCode = {
+      case RegisteredComponents(componentIds) => StatusCodes.OK
+      case _ => StatusCodes.InternalServerError
     }
+    val entityFunction: Any => Future[ResponseEntity] = {
+      case RegisteredComponents(componentIds) => Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
+      case _ => Future(HttpEntity.Empty)
+    }
+    createHttpResponse(statusCodeFunction, entityFunction)
   }
 
-  private def handleGetDetails(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[MessageEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+  private def handleGetDetails: Future[Any] => Future[HttpResponse] = {
+    val statusCodeFunction: Any => StatusCode = {
+      case Details(componentId) => StatusCodes.OK
+      case _ => StatusCodes.InternalServerError
     }
+    val entityFunction: Any => Future[ResponseEntity] = {
+      case Details(componentId) => Marshal(Details(componentId)).to[ResponseEntity]
+      case _ => Future(HttpEntity.Empty)
+    }
+    createHttpResponse(statusCodeFunction, entityFunction)
+  }
+
+  private def createHttpResponse(statusCodeFunction: Any => StatusCode, entityFunction: Any => Future[ResponseEntity])
+                                (resultFuture: Future[Any]): Future[HttpResponse] = {
+    for {
+      result <- resultFuture
+      statusCode = statusCodeFunction(result)
+      responseEntity <- entityFunction(result)
+    } yield HttpResponse(status = statusCode, entity = responseEntity)
   }
 }
