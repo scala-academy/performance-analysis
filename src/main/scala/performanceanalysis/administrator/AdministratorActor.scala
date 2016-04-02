@@ -34,37 +34,38 @@ object AdministratorActor {
 class AdministratorActor extends Actor with ActorLogging with LogParserActorManager {
   this: LogParserActorManager =>
 
-  // TODO: Find proper place for timeout
-  override implicit val timeout = Server.timeout
+  def receive: Receive = normal(Map.empty[String, ActorRef])
 
-  def receive: Receive = {
+  def normal(logParserActors: Map[String, ActorRef]): Receive = {
     case RegisterComponent(componentId) =>
-      handleRegisterComponent(componentId, sender)
+      handleRegisterComponent(logParserActors, componentId, sender)
     case GetDetails(componentId) =>
-      handleGetDetails(componentId, sender)
+      handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
       ???
   }
 
-  private def handleRegisterComponent(componentId: String, sender: ActorRef) = {
-    findLogParserActor(context, componentId).map(_ match {
+  private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+    findLogParserActor(logParserActors, componentId) match {
       case None =>
         val newActor = createLogParserActor(context, componentId)
         log.debug(s"Actor created with path ${newActor.path}")
         sender ! LogParserCreated(componentId)
+        val newLogParserActors = logParserActors.updated(componentId, newActor)
+        context.become(normal(newLogParserActors))
       case Some(ref) =>
         log.debug(s"Actor with component $componentId already existed")
         sender ! LogParserExisted(componentId)
-    })
+    }
   }
 
-  private def handleGetDetails(componentId: String, sender: ActorRef) = {
-    findLogParserActor(context, componentId).map(_ match {
+  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+    findLogParserActor(logParserActors, componentId) match {
       case None => sender ! LogParserNotFound(componentId)
       case Some(ref) =>
         log.debug(s"Requesting details from ${ref.path}")
         (ref ? RequestDetails) pipeTo sender
-    })
+    }
   }
 }
 
