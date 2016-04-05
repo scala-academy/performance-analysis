@@ -8,14 +8,10 @@ class LogSubmissionTest extends IntegrationTestBase {
     scenario("Logs posted at the LogReceiver") {
       // TODO Implement
       Given("the server is running")
-      And("""I did not register a component with name "notRegistered"""")
-      When("I do a HTTP POST to '/components/notRegistered/metrics' on the LogReceiver port")
-      Then("the response should have statuscode 404")
-
-      Given("the server is running")
-      And("""I registered a component by doing a POST with {"componentId" : "LogReceivingComponent"} to /components on the Administrator port""")
-      When("""I do a HTTP POST with {"metric-key" : "123"} to '/components/LogReceivingComponent/metrics' on the LogReceiver port""")
-      Then("the response should have statuscode 202")
+      And("""I registered a component with id "parsingConfiguredComponenet" and a metric {"regex" : "+d", "metric-key" : "a-numerical-metric"}""")
+      When("""I do a POST with {"logline" : "some action took 101 seconds", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp/logs on the """ +
+          "Administrator port")
+      Then("""the response should have statuscode 202""")
     }
   }
 }
