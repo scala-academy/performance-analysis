@@ -1,4 +1,4 @@
-package performanceanalysis
+package performanceanalysis.server
 
 import java.net.InetSocketAddress
 import java.util.concurrent.TimeUnit

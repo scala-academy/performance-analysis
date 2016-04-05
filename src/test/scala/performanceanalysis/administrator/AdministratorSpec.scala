@@ -3,9 +3,7 @@ package performanceanalysis.administrator
 import akka.actor.ActorRef
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.{TestActor, TestProbe}
-import performanceanalysis.LogParserActor.Details
-import performanceanalysis.Status
-import performanceanalysis.administrator.AdministratorActor.{GetDetails, GetRegisteredComponents, RegisteredComponents}
+import performanceanalysis.server.Protocol._
 import performanceanalysis.base.SpecBase
 
 /**
@@ -13,21 +11,8 @@ import performanceanalysis.base.SpecBase
   */
 class AdministratorSpec extends SpecBase with ScalatestRouteTest {
 
-  /*
-    * Override createActorSystem from ScalatestRouteTest to inject our own system
-    */
   "The server" must {
-    "handle a GET on /status and return a positive uptime in milliseconds" in new Administrator {
-      Get("/status") ~> routes ~> check {
-        val status = responseAs[Status]
-        val uptime = status.uptime
-        val (time, millisStr) = uptime.splitAt(uptime.indexOf(" "))
-        assert(time.toInt > 0)
-        assert(millisStr === " milliseconds")
-      }
-    }
-
-    "create an administrator actor and route messages to it" in new Administrator {
+    "create an administrator actor and route messages to it" in new Administrator(system.deadLetters) {
       val probe = TestProbe("AdministratorActorProbe")
       probe.setAutoPilot(new TestActor.AutoPilot {
         def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
@@ -41,7 +26,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components by returning all registered componentIds" in new Administrator {
+    "handle a GET on /components by returning all registered componentIds" in new Administrator(system.deadLetters) {
       val probe = TestProbe("AdministratorActorProbe")
       probe.setAutoPilot(new TestActor.AutoPilot {
         def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
@@ -56,7 +41,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components/<known componentId> with details of that component" in new Administrator {
+    "handle a GET on /components/<known componentId> with details of that component" in new Administrator(system.deadLetters) {
       val probe = TestProbe("AdministratorActorProbe")
       val componentId = "knownId"
       probe.setAutoPilot(new TestActor.AutoPilot {

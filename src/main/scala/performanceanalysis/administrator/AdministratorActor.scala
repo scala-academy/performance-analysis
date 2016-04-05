@@ -2,9 +2,7 @@ package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
-import performanceanalysis.LogParserActor.RequestDetails
-import performanceanalysis.Server
-import performanceanalysis.administrator.AdministratorActor._
+import performanceanalysis.server.Protocol._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -14,25 +12,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object AdministratorActor {
 
-  case class RegisterComponent(componentId: String)
-
-  case class LogParserCreated(componentId: String)
-
-  case class LogParserExisted(componentId: String)
-
-  case class LogParserNotFound(componentId: String)
-
-  case class GetDetails(componentId: String)
-
-  case object GetRegisteredComponents
-
-  case class RegisteredComponents(componentIds: Set[String])
-
-  def props: Props = Props(new AdministratorActor)
+  def props(logReceiverActor: ActorRef): Props = Props(new AdministratorActor(logReceiverActor))
 }
 
-class AdministratorActor extends Actor with ActorLogging with LogParserActorManager {
-  this: LogParserActorManager =>
+class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLogging with LogParserActorCreater {
+  this: LogParserActorCreater =>
 
   def receive: Receive = normal(Map.empty[String, ActorRef])
 
@@ -46,13 +30,16 @@ class AdministratorActor extends Actor with ActorLogging with LogParserActorMana
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
-    findLogParserActor(logParserActors, componentId) match {
+    logParserActors.get(componentId) match {
       case None =>
         val newActor = createLogParserActor(context, componentId)
-        log.debug(s"Actor created with path ${newActor.path}")
-        sender ! LogParserCreated(componentId)
+        // Notify LogReceiver of new actor
+        logReceiverActor ! RegisterNewLogParser(componentId, newActor)
+        // Update actor state
         val newLogParserActors = logParserActors.updated(componentId, newActor)
         context.become(normal(newLogParserActors))
+        // Respond to sender
+        sender ! LogParserCreated(componentId)
       case Some(ref) =>
         log.debug(s"Actor with component $componentId already existed")
         sender ! LogParserExisted(componentId)
@@ -60,7 +47,7 @@ class AdministratorActor extends Actor with ActorLogging with LogParserActorMana
   }
 
   private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
-    findLogParserActor(logParserActors, componentId) match {
+    logParserActors.get(componentId) match {
       case None => sender ! LogParserNotFound(componentId)
       case Some(ref) =>
         log.debug(s"Requesting details from ${ref.path}")
