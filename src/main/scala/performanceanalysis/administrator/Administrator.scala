@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
-import performanceanalysis.server.Server
+import performanceanalysis.server.{Protocol, Server}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -27,7 +27,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
     path(Segment) { componentId =>
       get {
         // Handle GET of an existing component
-        complete(handleGetDetails(administratorActor ? GetDetails(componentId)))
+        complete(handleGet(administratorActor ? GetDetails(componentId)))
       } ~ patch {
         // Handle PATCH of an existing component
         ???
@@ -35,7 +35,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
     } ~
       get {
         // Handle GET (get list of all registered components)
-        complete(handleGetComponents(administratorActor ? GetRegisteredComponents))
+        complete(handleGet(administratorActor ? GetRegisteredComponents))
       } ~
       post {
         // Handle POST (registration of a new component)
@@ -48,31 +48,25 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected def routes: Route = componentsRoute
 
-  private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
+  private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case RegisteredComponents(componentIds) =>
         val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+        toFutureResponse(entityFuture)
+      case Details(componentId) =>
+        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
+        toFutureResponse(entityFuture)
     }
   }
 
-  private def handleGetDetails(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+  private def toFutureResponse(entityFuture: Future[ResponseEntity]) = {
+    entityFuture.map {
+      case registeredComponentsEntity =>
+        HttpResponse(
+          status = StatusCodes.OK,
+          entity = registeredComponentsEntity
+        )
     }
   }
+
 }
