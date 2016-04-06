@@ -16,25 +16,15 @@ import scala.concurrent.duration._
 trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
   val main = Main
 
-  var adminServerAddress: InetSocketAddress = _
-  var adminRequestHost: String = _
-  var adminClient: Service[Request, Response] = _
+  lazy val adminServerAddress: InetSocketAddress = Await.result(main.administrator.getServerAddress, 10.seconds)
+  lazy val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
+  lazy val adminClient: Service[Request, Response] = finagle.Http.newService(adminRequestHost)
 
-  var logReceiverServerAddress: InetSocketAddress = _
-  var logReceiverRequestHost: String = _
-  var logReceiverClient: Service[Request, Response] = _
+  lazy val logReceiverServerAddress: InetSocketAddress = Await.result(main.logReceiver.getServerAddress, 10.seconds)
+  lazy val logReceiverRequestHost: String = s"localhost:${logReceiverServerAddress.getPort.toString}"
+  lazy val logReceiverClient: Service[Request, Response] = finagle.Http.newService(logReceiverRequestHost)
 
   main.main(Array())
-
-  override def beforeAll(): Unit = {
-    adminServerAddress = Await.result(main.administrator.getServerAddress, 10.seconds)
-    adminRequestHost = s"localhost:${adminServerAddress.getPort.toString}"
-    adminClient = finagle.Http.newService(adminRequestHost)
-
-    logReceiverServerAddress = Await.result(main.logReceiver.getServerAddress, 10.seconds)
-    logReceiverRequestHost = s"localhost:${logReceiverServerAddress.getPort.toString}"
-    logReceiverClient = finagle.Http.newService(logReceiverRequestHost)
-  }
 
   def performAdminRequest(request: Request): Future[Response] = {
     request.host = adminRequestHost
