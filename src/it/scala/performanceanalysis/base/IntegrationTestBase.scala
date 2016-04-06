@@ -4,10 +4,11 @@ import java.net.InetSocketAddress
 
 import com.twitter.finagle
 import com.twitter.finagle.Service
-import com.twitter.finagle.http.{Request, Response}
+import com.twitter.finagle.http.{Request, RequestBuilder, Response}
+import com.twitter.io.Bufs._
 import com.twitter.util.Future
 import org.scalatest._
-import performanceanalysis.Main
+import performanceanalysis.server.Main
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -19,9 +20,9 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
   var adminRequestHost: String = _
   var adminClient: Service[Request, Response] = _
 
-  var gathererServerAddress: InetSocketAddress = _
-  var gathererRequestHost: String = _
-  var gathererClient: Service[Request, Response] = _
+  var logReceiverServerAddress: InetSocketAddress = _
+  var logReceiverRequestHost: String = _
+  var logReceiverClient: Service[Request, Response] = _
 
   main.main(Array())
 
@@ -30,9 +31,9 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     adminRequestHost = s"localhost:${adminServerAddress.getPort.toString}"
     adminClient = finagle.Http.newService(adminRequestHost)
 
-    gathererServerAddress = Await.result(main.gatherer.getServerAddress, 10.seconds)
-    gathererRequestHost = s"localhost:${gathererServerAddress.getPort.toString}"
-    gathererClient = finagle.Http.newService(gathererRequestHost)
+    logReceiverServerAddress = Await.result(main.logReceiver.getServerAddress, 10.seconds)
+    logReceiverRequestHost = s"localhost:${logReceiverServerAddress.getPort.toString}"
+    logReceiverClient = finagle.Http.newService(logReceiverRequestHost)
   }
 
   def performAdminRequest(request: Request): Future[Response] = {
@@ -40,8 +41,13 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     adminClient(request)
   }
 
-  def performGathererRequest(request: Request): Future[Response] = {
-    request.host = gathererRequestHost
-    gathererClient(request)
+  def performLogReceiverRequest(request: Request): Future[Response] = {
+    request.host = logReceiverRequestHost
+    logReceiverClient(request)
+  }
+
+  def buildPostRequest(host: String, path: String, data: String): Request = {
+    val url = s"http://$host$path"
+    RequestBuilder().url(url).setHeader("Content-Type", "application/json").buildPost(utf8Buf(data))
   }
 }

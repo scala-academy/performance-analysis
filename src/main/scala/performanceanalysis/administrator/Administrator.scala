@@ -1,12 +1,13 @@
 package performanceanalysis.administrator
 
+import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{HttpResponse, MessageEntity, StatusCodes}
+import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import performanceanalysis.LogParserActor.Details
-import performanceanalysis.administrator.AdministratorActor.{GetDetails, GetRegisteredComponents, RegisteredComponents}
-import performanceanalysis.{Server, Status, StatusActor}
+import performanceanalysis.server.Protocol.{RegisterComponent, _}
+import performanceanalysis.server.Server
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -14,17 +15,15 @@ import scala.concurrent.Future
 /**
   * Created by Jordi on 13-3-2016.
   */
-class Administrator extends Server {
+class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected lazy val httpPort = adminHttpPort
 
   protected lazy val httpInterface: String = adminHttpInterface
 
-  protected val statusActor = system.actorOf(StatusActor.props)
+  protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
-  protected val administratorActor = system.actorOf(AdministratorActor.props)
-
-  protected val componentsRoutes = pathPrefix("components") {
+  def componentsRoute: Route = pathPrefix("components") {
     path(Segment) { componentId =>
       get {
         // Handle GET of an existing component
@@ -40,23 +39,19 @@ class Administrator extends Server {
       } ~
       post {
         // Handle POST (registration of a new component)
-        ???
+        entity(as[RegisterComponent]) { registerComponent =>
+          log.debug(s"Received POST on /components with entity $registerComponent")
+          complete(HttpResponse(status = StatusCodes.NotImplemented))
+        }
       }
   }
 
-  protected val statusRoutes = pathPrefix("status") {
-    get {
-      log.debug("get /status executed")
-      complete((statusActor ? "dummy message").mapTo[Status])
-    }
-  }
-
-  protected val routes = statusRoutes ~ componentsRoutes
+  protected def routes: Route = componentsRoute
 
   private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case RegisteredComponents(componentIds) =>
-        val entityFuture = Marshal(RegisteredComponents(componentIds)).to[MessageEntity]
+        val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
         entityFuture.map {
           case registeredComponentsEntity =>
             HttpResponse(
@@ -70,7 +65,7 @@ class Administrator extends Server {
   private def handleGetDetails(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[MessageEntity]
+        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
         entityFuture.map {
           case registeredComponentsEntity =>
             HttpResponse(

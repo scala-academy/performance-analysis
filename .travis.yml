@@ -1,5 +1,22 @@
 language: scala
-scala:
-  - 2.11.7
+
+scala: 2.11.7
 
 jdk: oraclejdk8
+
+env:
+  - CODACY_PROJECT_TOKEN=d43e539be410419a96367e23835ca5d7
+
+script: ./build.sh
+
+# These directories are cached to S3 at the end of the build
+cache:
+  directories:
+    - $HOME/.m2
+    - $HOME/.ivy2
+    - $HOME/.sbt/boot
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/980748d83fc35b082c35
