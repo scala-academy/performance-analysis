@@ -14,7 +14,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
   def this() = this(ActorSystem("AdministratorActorSpec"))
 
   "AdministratorActor" must {
-    val logParserTestProbe = TestProbe("logParserProbe")
+    val logParserTestProbe = TestProbe("LogParserProbe")
     val adminActor = system.actorOf(Props(new AdministratorActor(logParserTestProbe.ref)))
     "respond with LogParserCreated and create a new child actor when an unknown component is registered" in {
       val testProbe = TestProbe("createChild1")
