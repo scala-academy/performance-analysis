@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by m06f791 on 24-3-2016.
   */
-class AdministratorActorSpec(system: ActorSystem) extends ActorSpecBase(system) {
+class AdministratorActorSpec(actorSystem: ActorSystem) extends ActorSpecBase(actorSystem) {
   def this() = this(ActorSystem("AdministratorActorSpec"))
 
   "AdministratorActor" must {
