@@ -2,9 +2,7 @@ package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
-import performanceanalysis.LogParserActor.RequestDetails
-import performanceanalysis.Server
-import performanceanalysis.administrator.AdministratorActor._
+import performanceanalysis.server.Protocol._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -14,57 +12,47 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object AdministratorActor {
 
-  case class RegisterComponent(componentId: String)
-
-  case class LogParserCreated(componentId: String)
-
-  case class LogParserExisted(componentId: String)
-
-  case class LogParserNotFound(componentId: String)
-
-  case class GetDetails(componentId: String)
-
-  case object GetRegisteredComponents
-
-  case class RegisteredComponents(componentIds: Set[String])
-
-  def props: Props = Props(new AdministratorActor)
+  def props(logReceiverActor: ActorRef): Props = Props(new AdministratorActor(logReceiverActor))
 }
 
-class AdministratorActor extends Actor with ActorLogging with LogParserActorManager {
-  this: LogParserActorManager =>
+class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLogging with LogParserActorCreater {
+  this: LogParserActorCreater =>
 
-  // TODO: Find proper place for timeout
-  override implicit val timeout = Server.timeout
+  def receive: Receive = normal(Map.empty[String, ActorRef])
 
-  def receive: Receive = {
+  def normal(logParserActors: Map[String, ActorRef]): Receive = {
     case RegisterComponent(componentId) =>
-      handleRegisterComponent(componentId, sender)
+      handleRegisterComponent(logParserActors, componentId, sender)
     case GetDetails(componentId) =>
-      handleGetDetails(componentId, sender)
+      handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
       ???
   }
 
-  private def handleRegisterComponent(componentId: String, sender: ActorRef) = {
-    findLogParserActor(context, componentId).map(_ match {
+  private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+    logParserActors.get(componentId) match {
       case None =>
         val newActor = createLogParserActor(context, componentId)
-        log.debug(s"Actor created with path ${newActor.path}")
+        // Notify LogReceiver of new actor
+        logReceiverActor ! RegisterNewLogParser(componentId, newActor)
+        // Update actor state
+        val newLogParserActors = logParserActors.updated(componentId, newActor)
+        context.become(normal(newLogParserActors))
+        // Respond to sender
         sender ! LogParserCreated(componentId)
       case Some(ref) =>
         log.debug(s"Actor with component $componentId already existed")
         sender ! LogParserExisted(componentId)
-    })
+    }
   }
 
-  private def handleGetDetails(componentId: String, sender: ActorRef) = {
-    findLogParserActor(context, componentId).map(_ match {
+  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+    logParserActors.get(componentId) match {
       case None => sender ! LogParserNotFound(componentId)
       case Some(ref) =>
         log.debug(s"Requesting details from ${ref.path}")
         (ref ? RequestDetails) pipeTo sender
-    })
+    }
   }
 }
 

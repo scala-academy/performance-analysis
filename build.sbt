@@ -1,6 +1,6 @@
 //import scalariform.formatter.preferences._
 
-name          := """scala-in-practise-base"""
+name          := """scala-in-practise-performance analysis"""
 organization  := "com.github.scala-academy"
 version       := "0.0.1"
 scalaVersion  := "2.11.7"
@@ -36,6 +36,7 @@ Revolver.settings
 //publishMavenStyle := true
 //publishArtifact in Test := false
 //pomIncludeRepository := { _ => false }
+
 //publishTo := {
 //  val nexus = "https://oss.sonatype.org/"
 //  if (isSnapshot.value)

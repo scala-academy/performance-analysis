@@ -7,11 +7,7 @@ import akka.actor.{ActorLogging, Actor, Props}
   */
 object LogParserActor {
 
-  case object RequestDetails
-
-  case class Details(componentId: String)
-
-  def props: Props = Props[LogParserActor]
+  def props: Props = Props(new LogParserActor())
 }
 
 class LogParserActor extends Actor with ActorLogging {
