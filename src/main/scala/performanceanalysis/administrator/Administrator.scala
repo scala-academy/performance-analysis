@@ -4,6 +4,7 @@ import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
 import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCodes}
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
 import performanceanalysis.server.Server
@@ -22,7 +23,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
-  protected val componentsRoutes = pathPrefix("components") {
+  def componentsRoute: Route = pathPrefix("components") {
     path(Segment) { componentId =>
       get {
         // Handle GET of an existing component
@@ -45,7 +46,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       }
   }
 
-  protected val routes = componentsRoutes
+  protected def routes: Route = componentsRoute
 
   private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
