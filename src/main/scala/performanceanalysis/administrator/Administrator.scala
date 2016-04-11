@@ -2,7 +2,8 @@ package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes.NotImplemented
+import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
@@ -41,38 +42,40 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         // Handle POST (registration of a new component)
         entity(as[RegisterComponent]) { registerComponent =>
           log.debug(s"Received POST on /components with entity $registerComponent")
-          complete(HttpResponse(status = StatusCodes.NotImplemented))
+          complete(HttpResponse(status = NotImplemented))
         }
       }
   }
 
   protected def routes: Route = componentsRoute
 
-  private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case RegisteredComponents(componentIds) =>
-        val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
-    }
+  private def handleGetComponents(future: Future[Any]): Future[HttpResponse] = {
+    new FutureWrapper(future) toResponse {case RegisteredComponents(componentIds) =>
+      Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]}
   }
 
   private def handleGetDetails(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+    new FutureWrapper(resultFuture) toResponse {case Details(componentId) =>
+      Marshal(Details(componentId)).to[ResponseEntity]}
+  }
+
+
+  class FutureWrapper(val future: Future[Any], val httpStatus: StatusCode = StatusCodes.OK) {
+
+    def toResponse(transform: Function[Any, Future[ResponseEntity]]): Future[HttpResponse] = {
+      future.flatMap {
+        value =>
+          val entityFuture: Future[ResponseEntity] = transform.apply(value)
+          entityFuture.map {
+            case responseEntity =>
+              HttpResponse(
+                status = httpStatus,
+                entity = responseEntity
+              )
+
+          }
+      }
+
     }
   }
 }
