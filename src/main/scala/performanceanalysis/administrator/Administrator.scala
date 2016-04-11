@@ -27,15 +27,15 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
     path(Segment) { componentId =>
       get {
         // Handle GET of an existing component
-        complete(handleGetDetails(administratorActor ? GetDetails(componentId)))
+        complete(respondWhenAvailable(administratorActor ? GetDetails(componentId)))
       } ~ patch {
         // Handle PATCH of an existing component
-        ???
+        complete(HttpResponse(status = StatusCodes.NotImplemented))
       }
     } ~
       get {
         // Handle GET (get list of all registered components)
-        complete(handleGetComponents(administratorActor ? GetRegisteredComponents))
+        complete(respondWhenAvailable(administratorActor ? GetRegisteredComponents))
       } ~
       post {
         // Handle POST (registration of a new component)
@@ -48,31 +48,18 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected def routes: Route = componentsRoute
 
-  private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case RegisteredComponents(componentIds) =>
-        val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+  private def respondWhenAvailable(future: Future[Any]): Future[HttpResponse] = {
+    future.flatMap {
+      case RegisteredComponents(componentId) =>
+        toResponse(Marshal(RegisteredComponents(componentId)).to[ResponseEntity])
+      case Details(componentId) =>
+        toResponse(Marshal(Details(componentId)).to[ResponseEntity])
     }
   }
 
-  private def handleGetDetails(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+  private def toResponse(future: Future[ResponseEntity]):Future[HttpResponse] = {
+    future.map {
+      case responseEntity => HttpResponse(status = StatusCodes.OK, entity = responseEntity)
     }
   }
 }
