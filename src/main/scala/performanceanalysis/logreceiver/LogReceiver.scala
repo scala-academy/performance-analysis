@@ -16,17 +16,17 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  def componentsRoute: Route = pathPrefix("components") {
+  def componentsRoute: Route = path("") {
+    get {
+      complete(StatusCodes.MethodNotAllowed, None)
+    }
+  } ~ pathPrefix("components") {
     get {
       log.debug("get /components executed")
       complete("dummy response")
     }
-  } ~
-  path("") {
-    get {
-      complete(StatusCodes.MethodNotAllowed, None)
-    }
   }
+
 
   def routes: Route = componentsRoute
 }
