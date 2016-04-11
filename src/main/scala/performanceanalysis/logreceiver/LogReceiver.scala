@@ -1,5 +1,6 @@
 package performanceanalysis.logreceiver
 
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import performanceanalysis.server.Server
@@ -19,6 +20,11 @@ class LogReceiver extends Server  {
     get {
       log.debug("get /components executed")
       complete("dummy response")
+    }
+  } ~
+  path("") {
+    get {
+      complete(StatusCodes.MethodNotAllowed, None)
     }
   }
 
