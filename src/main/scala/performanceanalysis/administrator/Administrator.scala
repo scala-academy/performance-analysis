@@ -2,7 +2,7 @@ package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCodes}
+import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
@@ -49,24 +49,25 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   protected def routes: Route = componentsRoute
 
   private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
+    def toFutureResponse(entityFuture: Future[ResponseEntity], status: StatusCode) = {
+      entityFuture.map {
+        case registeredComponentsEntity =>
+          HttpResponse(
+            status = StatusCodes.OK,
+            entity = registeredComponentsEntity
+          )
+      }
+    }
+
     resultFuture.flatMap {
       case RegisteredComponents(componentIds) =>
         val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
-        toFutureResponse(entityFuture)
+        toFutureResponse(entityFuture, StatusCodes.OK)
       case Details(componentId) =>
         val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
-        toFutureResponse(entityFuture)
+        toFutureResponse(entityFuture, StatusCodes.OK)
     }
   }
 
-  private def toFutureResponse(entityFuture: Future[ResponseEntity]) = {
-    entityFuture.map {
-      case registeredComponentsEntity =>
-        HttpResponse(
-          status = StatusCodes.OK,
-          entity = registeredComponentsEntity
-        )
-    }
-  }
 
 }
