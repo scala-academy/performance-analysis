@@ -7,7 +7,7 @@ import akka.event.{ LoggingAdapter, NoLogging }
 import akka.testkit.{ ImplicitSender, TestKit }
 import akka.util.Timeout
 
-class ActorSpecBase(_system: ActorSystem) extends TestKit(_system)
+class ActorSpecBase(myActorSystem: ActorSystem) extends TestKit(myActorSystem)
     with SpecBase with ImplicitSender {
 
   protected def log: LoggingAdapter = NoLogging
