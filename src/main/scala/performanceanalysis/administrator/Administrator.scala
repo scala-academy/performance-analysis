@@ -53,7 +53,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       entityFuture.map {
         case registeredComponentsEntity =>
           HttpResponse(
-            status = StatusCodes.OK,
+            status,
             entity = registeredComponentsEntity
           )
       }
