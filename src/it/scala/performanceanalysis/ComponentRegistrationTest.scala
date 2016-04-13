@@ -1,9 +1,18 @@
 package performanceanalysis
 
+import com.twitter.finagle.http.Response
 import com.twitter.util.Await
 import performanceanalysis.base.IntegrationTestBase
 
 class ComponentRegistrationTest extends IntegrationTestBase {
+
+  def registerComponent(componentId: String): Response = {
+    val path = "/components"
+    val data = s"""{"componentId" : "${componentId}"}"""
+    val registerRequest = buildPostRequest(adminRequestHost, path, data)
+    val registerResponseFuture = performAdminRequest(registerRequest)
+    Await.result(registerResponseFuture)
+  }
 
   feature("Server components endpoint") {
     scenario("Component registration at the Administrator") {
@@ -26,10 +35,21 @@ class ComponentRegistrationTest extends IntegrationTestBase {
       // TODO: Implement
       And(s"the content should be a list containing $data")
     }
+
     scenario("Configure parsing of a log line with a single metric") {
       Given("the server is running")
+
+      registerComponent("parsConfigComp")
       And("""I registered a component with id "parsConfigComp"""")
+
+      val path = "/components/parsConfigComp"
+      val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric"}"""
+      val parseRequest = buildPostRequest(adminRequestHost, path, data)
+      val parseResponseFuture = performAdminRequest(parseRequest)
+      val parseResponse = Await.result(parseResponseFuture)
       When("""I do a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp on the Administrator port""")
+
+      parseResponse.statusCode shouldBe 201
       Then("""the response should have statuscode 201""")
     }
   }

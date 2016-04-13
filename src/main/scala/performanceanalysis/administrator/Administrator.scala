@@ -28,7 +28,13 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       get {
         // Handle GET of an existing component
         complete(handleGet(administratorActor ? GetDetails(componentId)))
-      } ~ patch {
+      } ~ post {
+        entity(as[String]) { bla =>
+          // Handle POST of an existing component
+          complete(HttpResponse(status = StatusCodes.Created))
+        }
+      } ~
+        patch {
         // Handle PATCH of an existing component
         ???
       }
@@ -69,5 +75,6 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
     }
   }
 
+  //private def addParse
 
 }
