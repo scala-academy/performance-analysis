@@ -11,3 +11,7 @@ addSbtPlugin("io.spray" %% "sbt-revolver" % "0.7.2")
 // Needs to be added to support codacy scala coverage.
 // see: https://github.com/codacy/sbt-codacy-coverage#sbt-codacy-coverage
 addSbtPlugin("com.codacy" % "sbt-codacy-coverage" % "1.2.1")
+
+// For releasing to Maven Central
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
