@@ -7,15 +7,14 @@ import com.twitter.finagle.Service
 import com.twitter.finagle.http.{Request, RequestBuilder, Response}
 import com.twitter.io.Bufs._
 import com.twitter.util.Future
-import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import performanceanalysis.administrator.Administrator
 import performanceanalysis.logreceiver.LogReceiver
-import performanceanalysis.server.{Config, Main}
+import performanceanalysis.server.Config
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.Try
+import scala.language.reflectiveCalls
 
 trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
 
@@ -31,25 +30,15 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     val administrator = new Administrator(logReceiver.logReceiverActor) with TestConfig
   }
 
-  var adminServerAddress: InetSocketAddress = _
-  var adminRequestHost: String = _
-  var adminClient: Service[Request, Response] = _
+  lazy val adminServerAddress: InetSocketAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
+  lazy val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
+  lazy val adminClient: Service[Request, Response] = finagle.Http.newService(adminRequestHost)
 
-  var logReceiverServerAddress: InetSocketAddress = _
-  var logReceiverRequestHost: String = _
-  var logReceiverClient: Service[Request, Response] = _
+  lazy val logReceiverServerAddress: InetSocketAddress = Await.result(testMain.logReceiver.getServerAddress, 10.seconds)
+  lazy val logReceiverRequestHost: String = s"localhost:${logReceiverServerAddress.getPort.toString}"
+  lazy val logReceiverClient: Service[Request, Response] = finagle.Http.newService(logReceiverRequestHost)
 
   testMain.main(Array())
-
-  override def beforeAll(): Unit = {
-    adminServerAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
-    adminRequestHost = s"localhost:${adminServerAddress.getPort.toString}"
-    adminClient = finagle.Http.newService(adminRequestHost)
-
-    logReceiverServerAddress = Await.result(testMain.logReceiver.getServerAddress, 10.seconds)
-    logReceiverRequestHost = s"localhost:${logReceiverServerAddress.getPort.toString}"
-    logReceiverClient = finagle.Http.newService(logReceiverRequestHost)
-  }
 
   def performAdminRequest(request: Request): Future[Response] = {
     request.host = adminRequestHost
