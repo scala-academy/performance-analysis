@@ -17,3 +17,5 @@ Codacy grade and coverage:
 This is a project used in the "Scala and akka in practise" course.
 Goal: learn programing with Scala and Akka in a real-world scenario.
 
+What do you call a Java repository?
+A garbage collection<Java>
