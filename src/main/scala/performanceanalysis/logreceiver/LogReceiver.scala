@@ -22,5 +22,5 @@ class LogReceiver extends Server  {
     }
   }
 
-  def routes: Route = componentsRoute
+  override def routes: Route = componentsRoute
 }

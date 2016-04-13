@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
-import performanceanalysis.server.{Protocol, Server}
+import performanceanalysis.server.Server
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -39,14 +39,14 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       } ~
       post {
         // Handle POST (registration of a new component)
-        entity(as[RegisterComponent]) { registerComponent =>
+        entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
           log.debug(s"Received POST on /components with entity $registerComponent")
           complete(HttpResponse(status = StatusCodes.NotImplemented))
         }
       }
   }
 
-  protected def routes: Route = componentsRoute
+  override protected def routes: Route = componentsRoute
 
   private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
     def toFutureResponse(entityFuture: Future[ResponseEntity], status: StatusCode) = {
