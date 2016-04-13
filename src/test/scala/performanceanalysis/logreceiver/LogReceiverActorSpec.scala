@@ -8,7 +8,7 @@ import performanceanalysis.server.Protocol._
 /**
   * Created by Jordi on 5-4-2016.
   */
-class LogReceiverActorSpec(_system: ActorSystem) extends ActorSpecBase(_system) {
+class LogReceiverActorSpec(actorSystem: ActorSystem) extends ActorSpecBase(actorSystem) {
   def this() = this(ActorSystem("LogReceiverActorSpec"))
 
   "LogReceiverActor" must {
