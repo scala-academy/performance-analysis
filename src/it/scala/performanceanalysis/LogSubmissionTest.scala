@@ -1,14 +1,22 @@
 package performanceanalysis
 
 import performanceanalysis.base.IntegrationTestBase
+import com.twitter.finagle.http
+import org.scalatest.concurrent.ScalaFutures
+import performanceanalysis.utils.TwitterFutures
 
-class LogSubmissionTest extends IntegrationTestBase {
+class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with TwitterFutures {
 
   feature("Log Receiver should only support POST operations") {
-    scenario("") {
+    scenario("No GET requests allowed") {
       Given("the server is running")
       When("I do a HTTP GET to '/' on the LogReceiver port")
-      Then("the response should have statuscode 405")
+      val request  = http.Request(http.Method.Get, "/components")
+      val response = performLogReceiverRequest(request)
+      whenReady(response) { result =>
+        assert(result.getStatusCode() === 405)
+        Then("the response should have statuscode 405")
+      }
     }
     scenario("Logs posted at the LogReceiver") {
       // TODO Implement

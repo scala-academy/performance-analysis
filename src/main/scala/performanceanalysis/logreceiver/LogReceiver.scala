@@ -16,7 +16,7 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  def componentsRoute: Route = path("") {
+  def componentsRoute: Route = pathSingleSlash {
     get {
       complete(StatusCodes.MethodNotAllowed, None)
     }
