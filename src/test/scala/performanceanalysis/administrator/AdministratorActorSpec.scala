@@ -26,7 +26,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       logParserTestProbe.expectMsgPF() { case RegisterNewLogParser(`componentName`, _) => true }
 
       // Verify that child actor was created
-      val childActorName = LogParserActorCreater.createActorName(componentName)
+      val childActorName = LogParserActorCreator.createActorName(componentName)
       val searchString = s"${adminActor.path}/$childActorName"
       val childActorSearch = system.actorSelection(searchString).resolveOne()
       val childActorFound = childActorSearch.map { ref => true }.recover { case _: Throwable => false }
@@ -65,7 +65,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
         TestActor.NoAutoPilot
       }
     })
-    trait TestLogParserActorCreater extends LogParserActorCreater {
+    trait TestLogParserActorCreater extends LogParserActorCreator {
       this: ActorLogging =>
       override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
     }
