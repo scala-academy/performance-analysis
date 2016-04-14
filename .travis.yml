@@ -1,22 +1,21 @@
 language: scala
-
 scala: 2.11.7
-
 jdk: oraclejdk8
-
 env:
+  matrix:
   - CODACY_PROJECT_TOKEN=86acc16c5a8046ff9a3ec4705919c696
-
+  global:
+  - secure: N778gleTpTBiBfSLbR0rowm9jcSfddLIyrzz/3+hpuI0m2zTJcTlqmGdnngYprqHtjafSmuSf1MdtWFWaCxC4n53Ip4ZoiHdWnqvI+jPWeCRYa6KVfNcFB3I9gICFjf4hlzGtgMqX0Ed6WTdYNXTOpjcDJRIQTRz3MfVetjJRUSXJcQN0bHoGPn+CIUqirseQ/fkMugSrlJF5p8eSr00E5sf7hYSU9nmdD+RaNAWDsbBsOk5YGSOMmZDaFU0+XFggeLDZUWieTdTCyoPyrWktdLCLj2Mv2zWjPvnMjWnIxJAAno9nqrBj9uUcbOttIV5/uJ8DwcSdpaHGCcNf2h/8Wo9rQ95fmp6a8OeqkEeUsjkuUNdHeueJeuoFqSL0VZxaOkkqWlvYrz6dVhTN1WX+V2U6G4ZvXMEGdUmK3UCv/TXVHKeezFLpK6zGVOgnX7AEUJOF3f1jLkCvlLnbSOuxj4mlmp+glIq8FrEtNX2sRp0dS7H2pSzcL2ZWwFvakbFCh6wMEf3MiGqQMBh8Qs2X3K7MFbrDiME5e70c4ilS7Lx65d5uZJCmElkjen6+36TaOWYr4zHe2OZNO9OSWsERJwW5bdZAe4Vp6zbecqb2iCqIZir5q0EzgDXqALxJV8tDkG5izlYrwjkyK6aIwiutmm1DFw1VTQtXZswYi+XmME=
+  - secure: uYh6it4f6YsAazqv+Yz/slAl3zrw/M68akdEtJSA1aK0xbbZebc72NWSIGPhANZ3Bz55kMl7K4HKy37cITZ6sql2RI+6hL1N+pNZE4bnpV7o6MyXRSbPcSOSkR1KrA/wr/xtV9YIigDHKYSlI6BDIZhTeWdExlzhWWuYwWBpagvlmL52YxFyna7Hkpbk3uoIxU9/fZww/S1w7MMq4YPIuqg0XJrs98xbyRhLx1rPYceRZmWTvoLYKkBT3gC/0q6+UfRR6LIL+tkVciXI9PYY673+E41l4O36mOmbsF+z4tWSnbi9X/PFB84uzDk0hJQ1C8Kn8kQGFUXwOqCly3jFbrT3MVFD6GjCcRtXI+WaDtRLRLZbbtXleUo/ukO/eqCHANqxmQaHk0jJWKuReSIlzm0TfF2F7JRUzn02IV8VHPq8Sl7jGxx33H2qYkHRI5+22iTeVHZEP8rp7iNLL8C9fyedXDiIKBmatxvuY7XPAXAab0xAeWgEMB+IYfrnx3jFbiFl5sphjKKtbD715YqS6qkjxVhW2+dDzpXR70BnzL4t3lxy6b5i07cjcZjpBaBXoOQYX0g4vqIaDqD/gZHGHmwIN1Og8ycFvT09ySgXpkADqVNSvzQVWPmASiql29jLVWtWqHiuqmbFLwCx/7m+/kNGF8w8qyDVTMNEB7D6BEE=
 script: ./build.sh
-
-# These directories are cached to S3 at the end of the build
 cache:
   directories:
-    - $HOME/.m2
-    - $HOME/.ivy2
-    - $HOME/.sbt/boot
-
+  - $HOME/.m2
+  - $HOME/.ivy2
+  - $HOME/.sbt/boot
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/980748d83fc35b082c35
+    - https://webhooks.gitter.im/e/980748d83fc35b082c35
+after_success:
+  - "[[ $TRAVIS_BRANCH == \"develop\" ]] && { sbt publish; };"
