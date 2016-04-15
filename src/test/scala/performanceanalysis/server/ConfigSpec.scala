@@ -16,7 +16,7 @@ class ConfigSpec extends SpecBase {
       override lazy val config = ConfigFactory.load("noHttpConf.conf")
       adminHttpPort shouldBe 0
     }
-    "return 0 for config.httpConfig.admin.httpPort in case of  httpPort config" in new Config {
+    "return 0 for config.httpConfig.admin.httpPort in case of httpPort config" in new Config {
       override lazy val config = ConfigFactory.load("nonnumericHttpPort.conf")
       adminHttpPort shouldBe 0
     }
