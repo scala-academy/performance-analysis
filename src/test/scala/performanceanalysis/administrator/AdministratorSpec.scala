@@ -1,6 +1,7 @@
 package performanceanalysis.administrator
 
 import akka.actor.ActorRef
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.{TestActor, TestProbe}
 import performanceanalysis.server.Protocol._
@@ -56,6 +57,21 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
         probe.expectMsgPF() {case GetDetails(`componentId`) => true}
         val result = responseAs[Details]
         result shouldBe Details(componentId)
+      }
+    }
+
+    "handle a POST on /components by creating a new registered componentId" in new Administrator(system.deadLetters) {
+      val probe = TestProbe("AdministratorActorProbe")
+      probe.setAutoPilot(new TestActor.AutoPilot {
+        def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
+          sender ! LogParserCreated("RegisteredComponent1")
+          TestActor.NoAutoPilot
+        }
+      })
+      override protected val administratorActor = probe.ref
+
+      Post("/components", RegisterComponent("RegisteredComponent1")) ~> routes ~> check {
+        response.status shouldBe StatusCodes.Created
       }
     }
   }

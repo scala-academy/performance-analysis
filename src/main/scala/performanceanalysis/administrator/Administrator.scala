@@ -47,21 +47,27 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         // Handle POST (registration of a new component)
         entity(as[RegisterComponent]) { registerComponent =>
           log.debug(s"Received POST on /components with entity $registerComponent")
-          complete(HttpResponse(status = StatusCodes.NotImplemented))
+          complete(handlePost(administratorActor ? registerComponent))
         }
       }
   }
 
   protected def routes: Route = componentsRoute
 
+  private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
+    resultFuture.flatMap {
+      case LogParserCreated(componentId) =>
+        Future(HttpResponse(status = StatusCodes.Created))
+      case LogParserExisted(componentId) =>
+        ???
+    }
+  }
+
   private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
     def toFutureResponse(entityFuture: Future[ResponseEntity], status: StatusCode) = {
       entityFuture.map {
         case registeredComponentsEntity =>
-          HttpResponse(
-            status,
-            entity = registeredComponentsEntity
-          )
+          HttpResponse(status).withEntity(registeredComponentsEntity)
       }
     }
 
