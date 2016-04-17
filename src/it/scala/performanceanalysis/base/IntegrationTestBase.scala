@@ -30,15 +30,15 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     val administrator = new Administrator(logReceiver.logReceiverActor) with TestConfig
   }
 
-  lazy val adminServerAddress: InetSocketAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
-  lazy val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
-  lazy val adminClient: Service[Request, Response] = finagle.Http.newService(adminRequestHost)
-
-  lazy val logReceiverServerAddress: InetSocketAddress = Await.result(testMain.logReceiver.getServerAddress, 10.seconds)
-  lazy val logReceiverRequestHost: String = s"localhost:${logReceiverServerAddress.getPort.toString}"
-  lazy val logReceiverClient: Service[Request, Response] = finagle.Http.newService(logReceiverRequestHost)
-
   testMain.main(Array())
+
+  val adminServerAddress: InetSocketAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
+  val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
+  val adminClient: Service[Request, Response] = finagle.Http.newService(adminRequestHost)
+
+  val logReceiverServerAddress: InetSocketAddress = Await.result(testMain.logReceiver.getServerAddress, 10.seconds)
+  val logReceiverRequestHost: String = s"localhost:${logReceiverServerAddress.getPort.toString}"
+  val logReceiverClient: Service[Request, Response] = finagle.Http.newService(logReceiverRequestHost)
 
   def performAdminRequest(request: Request): Future[Response] = {
     request.host = adminRequestHost
