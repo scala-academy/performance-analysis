@@ -4,8 +4,8 @@ import akka.actor.ActorRef
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.{TestActor, TestProbe}
-import performanceanalysis.server.Protocol._
 import performanceanalysis.base.SpecBase
+import performanceanalysis.server.Protocol._
 
 /**
   * Created by Jordi on 9-3-2016.
@@ -47,7 +47,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val componentId = "knownId"
       probe.setAutoPilot(new TestActor.AutoPilot {
         def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
-          sender ! Details(componentId)
+          sender ! Details(Nil)
           TestActor.NoAutoPilot
         }
       })
@@ -56,7 +56,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       Get(s"/components/$componentId") ~> routes ~> check {
         probe.expectMsgPF() {case GetDetails(`componentId`) => true}
         val result = responseAs[Details]
-        result shouldBe Details(componentId)
+        result shouldBe Details(Nil)
       }
     }
 
