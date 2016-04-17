@@ -59,4 +59,16 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     val url = s"http://$host$path"
     RequestBuilder().url(url).buildGet()
   }
+
+  def awaitAdminPostResonse(path: String, data: String): Response = {
+    val request = buildPostRequest(adminRequestHost, path, data)
+    val responseFuture = adminClient(request)
+    com.twitter.util.Await.result(responseFuture)
+  }
+
+  def awaitAdminGetResonse(path: String): Response = {
+    val request = buildGetRequest(adminRequestHost, path)
+    val responseFuture = adminClient(request)
+    com.twitter.util.Await.result(responseFuture)
+  }
 }

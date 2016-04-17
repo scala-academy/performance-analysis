@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
-import performanceanalysis.server.{Protocol, Server}
+import performanceanalysis.server.Server
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -29,9 +29,10 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         // Handle GET of an existing component
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       } ~ post {
-        entity(as[String]) { bla =>
-          // Handle POST of an existing component
-          complete(HttpResponse(status = StatusCodes.Created))
+        // Handle POST of an existing component
+        entity(as[Metric]) { metric =>
+          log.debug(s"Received POST on /components/$componentId with entity $metric")
+          complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
         }
       } ~
         patch {
@@ -60,6 +61,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         Future(HttpResponse(status = StatusCodes.Created))
       case LogParserExisted(componentId) =>
         ???
+      case MetricRegistered(metric) =>
+        Future(HttpResponse(status = StatusCodes.Created))
     }
   }
 
@@ -75,8 +78,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case RegisteredComponents(componentIds) =>
         val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
+      case Details(metrics) =>
+        val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
     }
   }
