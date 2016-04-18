@@ -1,4 +1,4 @@
-package performanceanalysis
+package performanceanalysis.administrator
 
 import akka.actor.{Actor, ActorLogging, Props}
 import performanceanalysis.server.Protocol.{Details, Metric, MetricRegistered, RequestDetails}

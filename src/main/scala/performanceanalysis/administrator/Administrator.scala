@@ -26,7 +26,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   def componentsRoute: Route = pathPrefix("components") {
     path(Segment / "metrics") { componentId =>
       get {
-        // Handle GET of an existing component
+        // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       }
     } ~
@@ -89,7 +89,5 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         toFutureResponse(entityFuture, StatusCodes.OK)
     }
   }
-
-  //private def addParse
 
 }
