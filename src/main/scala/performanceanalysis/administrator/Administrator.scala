@@ -26,7 +26,6 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   def componentsRoute: Route = pathPrefix("components") {
     path(Segment / "metrics") { componentId =>
       get {
-        println("GET METRICS")
         // Handle GET of an existing component
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       }
@@ -34,7 +33,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       path(Segment) { componentId =>
         get {
           // Handle GET of an existing component
-          ???
+          complete(handleGet(administratorActor ? GetDetails(componentId)))
         } ~ post {
           // Handle POST of an existing component
           entity(as[Metric]) { metric =>
