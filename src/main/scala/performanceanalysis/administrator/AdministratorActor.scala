@@ -15,21 +15,27 @@ object AdministratorActor {
   def props(logReceiverActor: ActorRef): Props = Props(new AdministratorActor(logReceiverActor))
 }
 
-class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLogging with LogParserActorCreater {
-  this: LogParserActorCreater =>
+class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLogging with LogParserActorCreator {
+  this: LogParserActorCreator =>
 
   def receive: Receive = normal(Map.empty[String, ActorRef])
 
   def normal(logParserActors: Map[String, ActorRef]): Receive = {
     case RegisterComponent(componentId) =>
-      handleRegisterComponent(logParserActors, componentId, sender)
+      handleRegisterComponent(logParserActors, componentId)
     case GetDetails(componentId) =>
-      handleGetDetails(logParserActors, componentId, sender)
+      handleGetDetails(logParserActors, componentId)
     case GetRegisteredComponents =>
-      ???
+      handleGetRegisteredComponents(logParserActors)
   }
 
-  private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+  private def handleGetRegisteredComponents(logParserActors: Map[String, ActorRef]) = {
+    val registeredComponents: Set[String] = logParserActors.keySet
+    log.debug(s"Returning all registered components $registeredComponents")
+    sender() ! RegisteredComponents(registeredComponents)
+  }
+
+  private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String) = {
     logParserActors.get(componentId) match {
       case None =>
         val newActor = createLogParserActor(context, componentId)
@@ -39,19 +45,19 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
         val newLogParserActors = logParserActors.updated(componentId, newActor)
         context.become(normal(newLogParserActors))
         // Respond to sender
-        sender ! LogParserCreated(componentId)
+        sender() ! LogParserCreated(componentId)
       case Some(ref) =>
         log.debug(s"Actor with component $componentId already existed")
-        sender ! LogParserExisted(componentId)
+        sender() ! LogParserExisted(componentId)
     }
   }
 
-  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String) = {
     logParserActors.get(componentId) match {
-      case None => sender ! LogParserNotFound(componentId)
+      case None => sender() ! LogParserNotFound(componentId)
       case Some(ref) =>
         log.debug(s"Requesting details from ${ref.path}")
-        (ref ? RequestDetails) pipeTo sender
+        (ref ? RequestDetails) pipeTo sender()
     }
   }
 }

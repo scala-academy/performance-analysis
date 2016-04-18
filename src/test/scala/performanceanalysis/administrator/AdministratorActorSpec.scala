@@ -5,6 +5,7 @@ import akka.testkit.{TestActor, TestProbe}
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.Protocol._
 
+import scala.collection.Set
 import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -16,6 +17,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
   "AdministratorActor" must {
     val logParserTestProbe = TestProbe("LogParserProbe")
     val adminActor = system.actorOf(Props(new AdministratorActor(logParserTestProbe.ref)))
+
     "respond with LogParserCreated and create a new child actor when an unknown component is registered" in {
       val testProbe = TestProbe("createChild1")
       val componentName = "newComponent1"
@@ -26,7 +28,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       logParserTestProbe.expectMsgPF() { case RegisterNewLogParser(`componentName`, _) => true }
 
       // Verify that child actor was created
-      val childActorName = LogParserActorCreater.createActorName(componentName)
+      val childActorName = LogParserActorCreator.createActorName(componentName)
       val searchString = s"${adminActor.path}/$childActorName"
       val childActorSearch = system.actorSelection(searchString).resolveOne()
       val childActorFound = childActorSearch.map { ref => true }.recover { case _: Throwable => false }
@@ -45,6 +47,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       testProbe.send(adminActor, RegisterComponent(componentName))
       testProbe.expectMsgPF() { case LogParserExisted(`componentName`) => true }
     }
+
     "respond with LogParserNotFound when details of an unknown component is requested" in {
       val testProbe = TestProbe("createChild3")
       val componentName = "newComponent3"
@@ -54,6 +57,25 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       testProbe.expectMsgPF() { case LogParserNotFound(`componentName`) => true }
     }
 
+    "respond with all registered components" in {
+      val testProbe = TestProbe("createChild4")
+      4 to 10 foreach { i =>
+        val componentName: String = s"newComponent$i"
+        testProbe.send(adminActor, RegisterComponent(componentName))
+        testProbe.expectMsg(LogParserCreated(`componentName`))
+      }
+
+      testProbe.send(adminActor, GetRegisteredComponents)
+
+      val expectedComponents:Set[String] = ((4 to 10) map (i => s"component$i")).toSet
+      testProbe.expectMsgPF() { case RegisteredComponents(actualComponents) => (expectedComponents -- actualComponents).isEmpty }
+    }
+
+    "respond with empty set when no registrations" in {
+      val testProbe = TestProbe("createChild5")
+      testProbe.send(adminActor, GetRegisteredComponents)
+      testProbe.expectMsgPF() { case RegisteredComponents(actualComponents) => actualComponents.isEmpty }
+    }
   }
 
   "AdministratorActor (with testprobe as child)" must {
@@ -65,7 +87,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
         TestActor.NoAutoPilot
       }
     })
-    trait TestLogParserActorCreater extends LogParserActorCreater {
+    trait TestLogParserActorCreater extends LogParserActorCreator {
       this: ActorLogging =>
       override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
     }
