@@ -2,12 +2,14 @@ package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
+import akka.http.scaladsl.model.StatusCodes.Created
 import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
+import performanceanalysis.server.Protocol.Rules.AlertingRule
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
-import performanceanalysis.server.{Protocol, Server}
+import performanceanalysis.server.Server
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -24,13 +26,22 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
   def componentsRoute: Route = pathPrefix("components") {
-    path(Segment) { componentId =>
+    pathPrefix(Segment) { componentId =>
       get {
         // Handle GET of an existing component
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       } ~ patch {
         // Handle PATCH of an existing component
         ???
+      } ~ post {
+        pathPrefix("metrics" / Segment) { metricId =>
+          path("alerting-rules") {
+            entity(as[AlertingRule]) { rule =>
+              log.debug(s"Received POST for new rule: $rule for $componentId/$metricId")
+              complete(handlePost(administratorActor ? RegisterNewAlertingRule(componentId, metricId, rule)))
+            }
+          }
+        }
       }
     } ~
       get {
@@ -51,9 +62,11 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case LogParserCreated(componentId) =>
-        Future(HttpResponse(status = StatusCodes.Created))
+        Future(HttpResponse(status = Created))
       case LogParserExisted(componentId) =>
         ???
+      case AlertingRuleCreated(_) =>
+        Future(HttpResponse(status = Created))
     }
   }
 

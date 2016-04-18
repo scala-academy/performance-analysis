@@ -1,8 +1,11 @@
 package performanceanalysis.server
 
 import akka.actor.ActorRef
+import performanceanalysis.server.Protocol.Rules.AlertingRule
 import performanceanalysis.server.Protocol._
 import spray.json.DefaultJsonProtocol
+
+import scala.concurrent.duration.Duration
 
 object Protocol {
 
@@ -58,9 +61,33 @@ object Protocol {
   case class Details(componentId: String)
 
   /**
-    * Used by Administrator towards LogReceiver to notify it ofa new LogReceiver actor
+    * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
   case class RegisterNewLogParser(componentId: String, actor: ActorRef)
+
+  object Rules {
+
+    /**
+      * Encapsulates a basic alerting rule.
+      */
+    case class AlertingRule(threshold: Threshold, action: Action)
+
+    /** Defines threshold of a rule. */
+    case class Threshold(max: String) {
+      def limit: Duration = Duration(max)
+    }
+    case class Action(url: String)
+  }
+
+  /**
+    * Used by the Administrator towards AdministratorActor to add a new alerting rule.
+    */
+  case class RegisterNewAlertingRule(componentId: String, metricKey: String, rule: AlertingRule)
+
+  /**
+    * Used by AdministratorActor towards Administrator to indicate that the given rule was successufully created.
+    */
+  case class AlertingRuleCreated(rule: AlertingRule)
 
 }
 
@@ -68,4 +95,8 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
+
+  implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
+  implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
+  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertingRule.apply)
 }

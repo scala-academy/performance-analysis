@@ -1,9 +1,11 @@
 package performanceanalysis.administrator
 
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.StatusCodes.Created
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
 import performanceanalysis.base.SpecBase
+import performanceanalysis.server.Protocol.Rules.{Action, AlertingRule, Threshold}
 import performanceanalysis.server.Protocol._
 
 /**
@@ -67,8 +69,24 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       probe.reply(LogParserCreated("RegisteredComponent1"))
 
       routeTestResult ~>  check {
-        response.status shouldBe StatusCodes.Created
+        response.status shouldBe Created
       }
+    }
+
+    "create an alerting rule via a POST on alerting-rules endpoint" in new Administrator(system.deadLetters) {
+      val probe = TestProbe()
+      override protected val administratorActor = probe.ref
+
+      val rule = AlertingRule(Threshold("2000 millis"), Action("dummy-action"))
+      val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
+
+      probe.expectMsg(RegisterNewAlertingRule("cid", "mkey", rule))
+      probe.reply(AlertingRuleCreated(rule))
+
+      routeTestResult ~> check {
+        response.status shouldBe Created
+      }
+
     }
   }
 }
