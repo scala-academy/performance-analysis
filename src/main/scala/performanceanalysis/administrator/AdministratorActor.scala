@@ -26,13 +26,13 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     case GetDetails(componentId) =>
       handleGetDetails(logParserActors, componentId)
     case GetRegisteredComponents =>
-      handleRegisteredComponents(logParserActors)
+      handleGetRegisteredComponents(logParserActors)
   }
 
-  private def handleRegisteredComponents(logParserActors: Map[String, ActorRef]) = {
+  private def handleGetRegisteredComponents(logParserActors: Map[String, ActorRef]) = {
     val registeredComponents: Set[String] = logParserActors.keySet
     log.debug(s"Returning all registered components $registeredComponents")
-    sender() ! registeredComponents
+    sender() ! RegisteredComponents(registeredComponents)
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String) = {
