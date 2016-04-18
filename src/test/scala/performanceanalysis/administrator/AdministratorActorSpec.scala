@@ -71,7 +71,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       testProbe.expectMsgPF() { case RegisteredComponents(actualComponents) => (expectedComponents -- actualComponents).isEmpty }
     }
 
-    "respond with " in {
+    "respond with empty set when no registrations" in {
       val testProbe = TestProbe("createChild5")
       testProbe.send(adminActor, GetRegisteredComponents)
       testProbe.expectMsgPF() { case RegisteredComponents(actualComponents) => actualComponents.isEmpty }
