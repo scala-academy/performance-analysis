@@ -37,7 +37,6 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       probe.reply(RegisteredComponents(Set("RegisteredComponent1", "RegisteredComponent2", "RegisteredComponent3")))
 
       testRouteResult ~> check {
-        val result = responseAs[RegisteredComponents]
         responseAs[RegisteredComponents] shouldBe
           RegisteredComponents(Set("RegisteredComponent1", "RegisteredComponent2", "RegisteredComponent3"))
       }
@@ -54,8 +53,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       probe.reply(Details(componentId))
 
       routeTestResult ~> check {
-        val result = responseAs[Details]
-        result shouldBe Details(componentId)
+        responseAs[Details] shouldBe Details(componentId)
       }
     }
 
