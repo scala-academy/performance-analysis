@@ -11,8 +11,8 @@ Build status:
 [![Build Status](https://travis-ci.org/scala-academy/performance-analysis.svg?branch=develop)](https://travis-ci.org/scala-academy/performance-analysis)
 
 Codacy grade and coverage:
-[![Codacy Badge](https://api.codacy.com/project/badge/grade/97a43b62463844059cab48fbdcd2e3bd)](https://www.codacy.com/app/scala-academy/performance-analysis)
-[![Codacy Badge](https://api.codacy.com/project/badge/coverage/97a43b62463844059cab48fbdcd2e3bd)](https://www.codacy.com/app/scala-academy/performance-analysis)
+[![Codacy Badge](https://api.codacy.com/project/badge/grade/99aa6d53ff6644899303a0ce71b733a2)](https://www.codacy.com/app/scala-academy/performance-analysis)
+[![Codacy Badge](https://api.codacy.com/project/badge/coverage/99aa6d53ff6644899303a0ce71b733a2)](https://www.codacy.com/app/scala-academy/performance-analysis)
 
 This is a project used in the "Scala and akka in practise" course.
 Goal: learn programing with Scala and Akka in a real-world scenario.
