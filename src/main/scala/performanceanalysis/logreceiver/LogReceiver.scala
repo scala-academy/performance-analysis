@@ -8,6 +8,7 @@ import akka.pattern.ask
 import performanceanalysis.server.Protocol._
 import performanceanalysis.server.Server
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 /**
