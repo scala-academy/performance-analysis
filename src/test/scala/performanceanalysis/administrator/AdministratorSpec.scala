@@ -51,11 +51,26 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val componentId = "knownId"
       val routeTestResult = Get(s"/components/$componentId") ~> routes
 
-      probe.expectMsgPF() {case GetDetails(`componentId`) => true}
-      probe.reply(Details(componentId))
+      probe.expectMsgPF() { case GetDetails(`componentId`) => true }
+      probe.reply(Details(Nil))
 
       routeTestResult ~> check {
-        responseAs[Details] shouldBe Details(componentId)
+        responseAs[Details] shouldBe Details(Nil)
+      }
+    }
+
+    "handle a GET on /components/<known componentId>/metrics with details of that component" in new Administrator(system.deadLetters) {
+      val probe = TestProbe()
+      override protected val administratorActor = probe.ref
+
+      val componentId = "knownId2"
+      val routeTestResult = Get(s"/components/$componentId/metrics") ~> routes
+
+      probe.expectMsgPF() { case GetDetails(`componentId`) => true }
+      probe.reply(Details(Nil))
+
+      routeTestResult ~> check {
+        responseAs[Details] shouldBe Details(Nil)
       }
     }
 
@@ -68,7 +83,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       probe.expectMsg(RegisterComponent("RegisteredComponent1"))
       probe.reply(LogParserCreated("RegisteredComponent1"))
 
-      routeTestResult ~>  check {
+      routeTestResult ~> check {
         response.status shouldBe Created
       }
     }
