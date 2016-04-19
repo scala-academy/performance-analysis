@@ -5,7 +5,7 @@ import akka.testkit.TestActorRef
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.Protocol.{Details, Metric, MetricRegistered, RequestDetails}
 
-class LogParserActorSpec(_system: ActorSystem) extends ActorSpecBase(_system) {
+class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
 
   def this() = this(ActorSystem("AdministratorActorSpec"))
 
