@@ -27,6 +27,8 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
       handleGetComponents(logParserActors, sender)
+    case RegisterMetric(componentId, metric) =>
+      handleRegisterMetric(logParserActors, componentId, metric, sender)
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -58,6 +60,15 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
 
   private def handleGetComponents(logParserActors: Map[String, ActorRef], sender: ActorRef) = {
     sender ! RegisteredComponents(logParserActors.keySet)
+  }
+
+  private def handleRegisterMetric(logParserActors: Map[String, ActorRef], componentId: String, metric: Metric, sender: ActorRef) = {
+    logParserActors.get(componentId) match {
+      case None => sender ! LogParserNotFound(componentId)
+      case Some(ref) =>
+        log.debug(s"Sending metric registration to ${ref.path}")
+        (ref ? metric) pipeTo sender
+    }
   }
 }
 

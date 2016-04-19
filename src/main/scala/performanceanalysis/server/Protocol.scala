@@ -58,12 +58,27 @@ object Protocol {
   /**
     * Used by LogParserActor towards AdministratorActor to return its details
     */
-  case class Details(componentId: String)
+  case class Details(metrics: List[Metric])
 
   /**
     * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
   case class RegisterNewLogParser(componentId: String, actor: ActorRef)
+
+  /**
+    * Used to register a metric in the LogParserActor
+    */
+  case class Metric(metricKey: String, regex: String)
+
+  /**
+    * Used to register a metric in the AdministratorParserActor
+    */
+  case class RegisterMetric(componentId: String, metric: Metric)
+
+  /**
+    * Used by LogParserActor to signal a metric was registered
+    */
+  case class MetricRegistered(metric: Metric)
 
   object Rules {
 
@@ -92,6 +107,7 @@ object Protocol {
 }
 
 trait Protocol extends DefaultJsonProtocol {
+  implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex")
   implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)

@@ -33,16 +33,26 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       } ~ patch {
         // Handle PATCH of an existing component
         ???
-      } ~ post {
-        pathPrefix("metrics" / Segment) { metricId =>
-          path("alerting-rules") {
-            entity(as[AlertingRule]) { rule =>
-              log.debug(s"Received POST for new rule: $rule for $componentId/$metricId")
-              complete(handlePost(administratorActor ? RegisterNewAlertingRule(componentId, metricId, rule)))
-            }
+      } ~ pathPrefix("metrics") {
+            post {
+              pathEnd {
+                entity(as[Metric]) { metric =>
+                  log.debug(s"Received POST on /components/$componentId with entity $metric")
+                  complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
+                }
+              } ~ pathPrefix(Segment) { metricId =>
+                    path("alerting-rules") {
+                      entity(as[AlertingRule]) { rule =>
+                        log.debug(s"Received POST for new rule: $rule for $componentId/$metricId")
+                        complete(handlePost(administratorActor ? RegisterNewAlertingRule(componentId, metricId, rule)))
+                      }
+                    }
+                  }
+            } ~ get {
+                  // Handle GET of an existing component
+                  complete(handleGet(administratorActor ? GetDetails(componentId)))
+                }
           }
-        }
-      }
     } ~
       get {
         // Handle GET (get list of all registered components)
@@ -65,6 +75,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         Future(HttpResponse(status = Created))
       case LogParserExisted(componentId) =>
         ???
+      case MetricRegistered(metric) =>
+        Future(HttpResponse(status = StatusCodes.Created))
       case AlertingRuleCreated(_) =>
         Future(HttpResponse(status = Created))
     }
@@ -82,8 +94,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case RegisteredComponents(componentIds) =>
         val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
+      case Details(metrics) =>
+        val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
     }
   }

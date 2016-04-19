@@ -69,7 +69,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
     val testComponentId = "newComponent4"
     componentTestProbe.setAutoPilot(new TestActor.AutoPilot {
       def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
-        sender ! Details(testComponentId)
+        sender ! Details(Nil)
         TestActor.NoAutoPilot
       }
     })
@@ -84,7 +84,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
       testProbe.send(adminActor, GetDetails(testComponentId))
       componentTestProbe.expectMsg(RequestDetails)
-      testProbe.expectMsgPF() { case Details(`testComponentId`) => true }
+      testProbe.expectMsgPF() { case Details(Nil) => true }
     }
   }
 }
