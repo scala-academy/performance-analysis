@@ -78,6 +78,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
     }
     val adminActor = system.actorOf(Props(new AdministratorActor(system.deadLetters) with TestLogParserActorCreater))
+
     "request a LogHandlerActor for details and forward the result to the requester" in {
       val testProbe = TestProbe("testProbe")
       testProbe.send(adminActor, RegisterComponent(testComponentId))

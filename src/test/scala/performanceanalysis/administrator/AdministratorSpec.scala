@@ -61,7 +61,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val probe = TestProbe()
       override protected val administratorActor = probe.ref
 
-      val componentId = "knownId"
+      val componentId = "knownId2"
       val routeTestResult = Get(s"/components/$componentId/metrics") ~> routes
 
       probe.expectMsgPF() { case GetDetails(`componentId`) => true }
@@ -80,6 +80,22 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
 
       probe.expectMsg(RegisterComponent("RegisteredComponent1"))
       probe.reply(LogParserCreated("RegisteredComponent1"))
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.Created
+      }
+    }
+
+    "handle a POST on /components/logParserActor by creating a new registered componentId" in new Administrator(system.deadLetters) {
+      val probe = TestProbe()
+      override protected val administratorActor = probe.ref
+
+      val componentId = "bla"
+      val metric = Metric("key", "+d")
+      val routeTestResult = Post(s"/components/$componentId", Metric("key", "+d")) ~> routes
+
+      probe.expectMsg(RegisterMetric(componentId, metric))
+      probe.reply(MetricRegistered(metric))
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.Created
