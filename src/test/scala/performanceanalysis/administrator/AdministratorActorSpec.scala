@@ -45,6 +45,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       testProbe.send(adminActor, RegisterComponent(componentName))
       testProbe.expectMsgPF() { case LogParserExisted(`componentName`) => true }
     }
+
     "respond with LogParserNotFound when details of an unknown component is requested" in {
       val testProbe = TestProbe("createChild3")
       val componentName = "newComponent3"
@@ -54,6 +55,13 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       testProbe.expectMsgPF() { case LogParserNotFound(`componentName`) => true }
     }
 
+    "respond with RegisteredComponents when all components are requested" in {
+      val testProbe = TestProbe("getAll")
+
+      // Request all registered components
+      testProbe.send(adminActor, GetRegisteredComponents)
+      testProbe.expectMsgPF() { case RegisteredComponents(_) => true }
+    }
   }
 
   "AdministratorActor (with testprobe as child)" must {

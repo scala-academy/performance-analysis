@@ -26,7 +26,7 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     case GetDetails(componentId) =>
       handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
-      ???
+      handleGetComponents(logParserActors, sender)
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -36,6 +36,7 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
         // Notify LogReceiver of new actor
         logReceiverActor ! RegisterNewLogParser(componentId, newActor)
         // Update actor state
+        log.debug(s"Created new component $componentId")
         val newLogParserActors = logParserActors.updated(componentId, newActor)
         context.become(normal(newLogParserActors))
         // Respond to sender
@@ -53,6 +54,10 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
         log.debug(s"Requesting details from ${ref.path}")
         (ref ? RequestDetails) pipeTo sender
     }
+  }
+
+  private def handleGetComponents(logParserActors: Map[String, ActorRef], sender: ActorRef) = {
+    sender ! RegisteredComponents(logParserActors.keySet)
   }
 }
 

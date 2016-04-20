@@ -54,4 +54,9 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     val url = s"http://$host$path"
     RequestBuilder().url(url).setHeader("Content-Type", "application/json").buildPost(utf8Buf(data))
   }
+
+  def buildGetRequest(host: String, path: String): Request = {
+    val url = s"http://$host$path"
+    RequestBuilder().url(url).buildGet()
+  }
 }
