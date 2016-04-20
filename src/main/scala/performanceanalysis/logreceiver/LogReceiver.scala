@@ -1,5 +1,6 @@
 package performanceanalysis.logreceiver
 
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import performanceanalysis.server.Server
@@ -15,12 +16,17 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  def componentsRoute: Route = pathPrefix("components") {
+  def componentsRoute: Route = pathSingleSlash {
+    get {
+      complete(StatusCodes.MethodNotAllowed, None)
+    }
+  } ~ pathPrefix("components") {
     get {
       log.debug("get /components executed")
       complete("dummy response")
     }
   }
+
 
   def routes: Route = componentsRoute
 }
