@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 /**
   * Created by m06f791 on 24-3-2016.
   */
-class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system) {
+class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
   def this() = this(ActorSystem("AdministratorActorSpec"))
 
   "AdministratorActor" must {
@@ -69,7 +69,7 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
     val testComponentId = "newComponent4"
     componentTestProbe.setAutoPilot(new TestActor.AutoPilot {
       def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
-        sender ! Details(testComponentId)
+        sender ! Details(Nil)
         TestActor.NoAutoPilot
       }
     })
@@ -78,13 +78,14 @@ class AdministratorActorSpec(_system: ActorSystem) extends ActorSpecBase(_system
       override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
     }
     val adminActor = system.actorOf(Props(new AdministratorActor(system.deadLetters) with TestLogParserActorCreater))
+
     "request a LogHandlerActor for details and forward the result to the requester" in {
       val testProbe = TestProbe("testProbe")
       testProbe.send(adminActor, RegisterComponent(testComponentId))
       testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
       testProbe.send(adminActor, GetDetails(testComponentId))
       componentTestProbe.expectMsg(RequestDetails)
-      testProbe.expectMsgPF() { case Details(`testComponentId`) => true }
+      testProbe.expectMsgPF() { case Details(Nil) => true }
     }
   }
 }
