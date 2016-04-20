@@ -52,14 +52,14 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       } ~
       post {
         // Handle POST (registration of a new component)
-        entity(as[RegisterComponent]) { registerComponent =>
+        entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
           log.debug(s"Received POST on /components with entity $registerComponent")
           complete(handlePost(administratorActor ? registerComponent))
         }
       }
   }
 
-  protected def routes: Route = componentsRoute
+  override protected def routes: Route = componentsRoute
 
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
