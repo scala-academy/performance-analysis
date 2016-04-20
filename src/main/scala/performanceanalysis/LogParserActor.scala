@@ -1,7 +1,7 @@
 package performanceanalysis
 
 import akka.actor.{Actor, ActorLogging, Props}
-import performanceanalysis.server.Protocol.{Details, Metric, MetricRegistered, RequestDetails}
+import performanceanalysis.server.Protocol._
 
 /**
   * Created by m06f791 on 25-3-2016.
@@ -25,7 +25,10 @@ class LogParserActor extends Actor with ActorLogging {
       context.become(normal(metric :: metrics))
       sender ! MetricRegistered(metric)
 
-    case msg => log.debug(s"received $msg in ${self.path}")
+    case msg: SubmitLogs =>
+      log.debug(s"received $msg in ${self.path}")
+      val metric = metricWithKey(msg.metricKey, metrics)
   }
 
+  def metricWithKey(key: String, metrics: List[Metric]): Option[Metric] = metrics.find(_.metricKey == key)
 }

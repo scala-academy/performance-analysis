@@ -48,7 +48,7 @@ object Protocol {
   /**
     * Used by LogReceiverActor towards LogReceiver to request processing of logs of a component
     */
-  case class SubmitLogs(componentId: String, logs: String)
+  case class SubmitLogs(componentId: String, logs: String, metricKey: String)
 
   /**
     * Used by AdministratorActor towards LogParserActor to request its details
@@ -100,10 +100,14 @@ object Protocol {
   case class RegisterNewAlertingRule(componentId: String, metricKey: String, rule: AlertingRule)
 
   /**
-    * Used by AdministratorActor towards Administrator to indicate that the given rule was successufully created.
+    * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
     */
   case class AlertingRuleCreated(rule: AlertingRule)
 
+  /** Used for submitting a new log to measure via LogReceiver. */
+  case class LogMeasurable(logs: String, metricKey: String)
+
+  case class CheckRuleBreak(logs: String, metric: Metric)
 }
 
 trait Protocol extends DefaultJsonProtocol {
@@ -115,4 +119,6 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
   implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertingRule.apply)
+
+  implicit val logMeasurableFormatter = jsonFormat(LogMeasurable.apply, "metric-key", "log")
 }
