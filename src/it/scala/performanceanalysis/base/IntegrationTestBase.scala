@@ -60,6 +60,11 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     RequestBuilder().url(url).buildGet()
   }
 
+  def logReceiverPostResponse(path: String, data: String): Future[Response] = {
+    val request = buildPostRequest(logReceiverRequestHost, path, data)
+    logReceiverClient(request)
+  }
+
   def awaitAdminPostResonse(path: String, data: String): Response = {
     val request = buildPostRequest(adminRequestHost, path, data)
     val responseFuture = adminClient(request)
