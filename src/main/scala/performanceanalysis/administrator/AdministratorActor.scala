@@ -26,7 +26,9 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     case GetDetails(componentId) =>
       handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
-      ???
+      handleGetComponents(logParserActors, sender)
+    case RegisterMetric(componentId, metric) =>
+      handleRegisterMetric(logParserActors, componentId, metric, sender)
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -36,6 +38,7 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
         // Notify LogReceiver of new actor
         logReceiverActor ! RegisterNewLogParser(componentId, newActor)
         // Update actor state
+        log.debug(s"Created new component $componentId")
         val newLogParserActors = logParserActors.updated(componentId, newActor)
         context.become(normal(newLogParserActors))
         // Respond to sender
@@ -46,12 +49,28 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     }
   }
 
-  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+  private def handleGetComponents(logParserActors: Map[String, ActorRef], sender: ActorRef) = {
+    sender ! RegisteredComponents(logParserActors.keySet)
+  }
+
+  private def routeToLogParser(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef)(action: ActorRef => Unit) = {
     logParserActors.get(componentId) match {
       case None => sender ! LogParserNotFound(componentId)
-      case Some(ref) =>
-        log.debug(s"Requesting details from ${ref.path}")
-        (ref ? RequestDetails) pipeTo sender
+      case Some(ref) => action(ref)
+    }
+  }
+
+  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+    routeToLogParser(logParserActors, componentId, sender) { ref =>
+      log.debug(s"Requesting details from ${ref.path}")
+      (ref ? RequestDetails) pipeTo sender
+    }
+  }
+
+  private def handleRegisterMetric(logParserActors: Map[String, ActorRef], componentId: String, metric: Metric, sender: ActorRef) = {
+    routeToLogParser(logParserActors, componentId, sender) { ref =>
+        log.debug(s"Sending metric registration to ${ref.path}")
+        (ref ? metric) pipeTo sender
     }
   }
 }

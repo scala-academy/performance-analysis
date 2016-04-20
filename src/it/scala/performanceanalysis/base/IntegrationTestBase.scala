@@ -30,15 +30,15 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     val administrator = new Administrator(logReceiver.logReceiverActor) with TestConfig
   }
 
-  lazy val adminServerAddress: InetSocketAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
-  lazy val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
-  lazy val adminClient: Service[Request, Response] = finagle.Http.newService(adminRequestHost)
-
-  lazy val logReceiverServerAddress: InetSocketAddress = Await.result(testMain.logReceiver.getServerAddress, 10.seconds)
-  lazy val logReceiverRequestHost: String = s"localhost:${logReceiverServerAddress.getPort.toString}"
-  lazy val logReceiverClient: Service[Request, Response] = finagle.Http.newService(logReceiverRequestHost)
-
   testMain.main(Array())
+
+  val adminServerAddress: InetSocketAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
+  val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
+  val adminClient: Service[Request, Response] = finagle.Http.newService(adminRequestHost)
+
+  val logReceiverServerAddress: InetSocketAddress = Await.result(testMain.logReceiver.getServerAddress, 10.seconds)
+  val logReceiverRequestHost: String = s"localhost:${logReceiverServerAddress.getPort.toString}"
+  val logReceiverClient: Service[Request, Response] = finagle.Http.newService(logReceiverRequestHost)
 
   def performAdminRequest(request: Request): Future[Response] = {
     request.host = adminRequestHost
@@ -53,5 +53,22 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
   def buildPostRequest(host: String, path: String, data: String): Request = {
     val url = s"http://$host$path"
     RequestBuilder().url(url).setHeader("Content-Type", "application/json").buildPost(utf8Buf(data))
+  }
+
+  def buildGetRequest(host: String, path: String): Request = {
+    val url = s"http://$host$path"
+    RequestBuilder().url(url).buildGet()
+  }
+
+  def awaitAdminPostResonse(path: String, data: String): Response = {
+    val request = buildPostRequest(adminRequestHost, path, data)
+    val responseFuture = adminClient(request)
+    com.twitter.util.Await.result(responseFuture)
+  }
+
+  def awaitAdminGetResonse(path: String): Response = {
+    val request = buildGetRequest(adminRequestHost, path)
+    val responseFuture = adminClient(request)
+    com.twitter.util.Await.result(responseFuture)
   }
 }
