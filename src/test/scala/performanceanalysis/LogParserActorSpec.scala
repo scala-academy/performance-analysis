@@ -1,4 +1,4 @@
-package performanceanalysis.administrator
+package performanceanalysis
 
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef

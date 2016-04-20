@@ -1,6 +1,7 @@
 package performanceanalysis.administrator
 
 import akka.actor.{ActorContext, ActorLogging, ActorRef}
+import performanceanalysis.LogParserActor
 import performanceanalysis.server.Server
 
 /**
