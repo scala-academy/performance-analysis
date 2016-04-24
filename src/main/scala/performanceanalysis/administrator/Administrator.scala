@@ -28,7 +28,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   def componentsRoute: Route = pathPrefix("components") {
     pathPrefix(Segment) { componentId =>
       get {
-        // Handle GET of an existing component
+        // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       } ~ patch {
         // Handle PATCH of an existing component
@@ -60,14 +60,14 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       } ~
       post {
         // Handle POST (registration of a new component)
-        entity(as[RegisterComponent]) { registerComponent =>
+        entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
           log.debug(s"Received POST on /components with entity $registerComponent")
           complete(handlePost(administratorActor ? registerComponent))
         }
       }
   }
 
-  protected def routes: Route = componentsRoute
+  override protected def routes: Route = componentsRoute
 
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {

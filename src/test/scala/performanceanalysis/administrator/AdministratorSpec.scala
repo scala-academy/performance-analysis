@@ -13,11 +13,18 @@ import performanceanalysis.server.Protocol._
   */
 class AdministratorSpec extends SpecBase with ScalatestRouteTest {
 
-  "The server" must {
-    "create an administrator actor and route messages to it" in new Administrator(system.deadLetters) {
-      val probe = TestProbe()
-      override protected val administratorActor = probe.ref
+  class AdministratorWithProbe extends Administrator(system.deadLetters) {
 
+    val probe = TestProbe()
+
+    override protected val administratorActor = probe.ref
+
+  }
+
+  class TestAdministrator()
+
+  "The server" must {
+    "create an administrator actor and route messages to it" in new AdministratorWithProbe() {
       val routeTestResult = Get("/components") ~> routes
 
       probe.expectMsg(GetRegisteredComponents)
@@ -29,10 +36,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components by returning all registered componentIds" in new Administrator(system.deadLetters) {
-      val probe = TestProbe()
-      override protected val administratorActor = probe.ref
-
+    "handle a GET on /components by returning all registered componentIds" in new AdministratorWithProbe() {
       val testRouteResult = Get("/components") ~> routes
 
       probe.expectMsg(GetRegisteredComponents)
@@ -44,10 +48,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components/<known componentId> with details of that component" in new Administrator(system.deadLetters) {
-      val probe = TestProbe()
-      override protected val administratorActor = probe.ref
-
+    "handle a GET on /components/<known componentId> with details of that component" in new AdministratorWithProbe() {
       val componentId = "knownId"
       val routeTestResult = Get(s"/components/$componentId") ~> routes
 
@@ -59,10 +60,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components/<known componentId>/metrics with details of that component" in new Administrator(system.deadLetters) {
-      val probe = TestProbe()
-      override protected val administratorActor = probe.ref
-
+    "handle a GET on /components/<known componentId>/metrics with details of that component" in new AdministratorWithProbe() {
       val componentId = "knownId2"
       val routeTestResult = Get(s"/components/$componentId/metrics") ~> routes
 
@@ -74,17 +72,27 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a POST on /components by creating a new registered componentId" in new Administrator(system.deadLetters) {
-      val probe = TestProbe()
-      override protected val administratorActor = probe.ref
-
+    "handle a POST on /components by creating a new registered componentId" in new AdministratorWithProbe() {
       val routeTestResult = Post("/components", RegisterComponent("RegisteredComponent1")) ~> routes
 
       probe.expectMsg(RegisterComponent("RegisteredComponent1"))
       probe.reply(LogParserCreated("RegisteredComponent1"))
 
       routeTestResult ~> check {
-        response.status shouldBe Created
+        response.status shouldBe StatusCodes.Created
+      }
+    }
+
+    "handle a POST on /components/logParserActor by creating a new registered componentId" in new AdministratorWithProbe() {
+      val componentId = "bla"
+      val metric = Metric("key", "+d")
+      val routeTestResult = Post(s"/components/$componentId", Metric("key", "+d")) ~> routes
+
+      probe.expectMsg(RegisterMetric(componentId, metric))
+      probe.reply(MetricRegistered(metric))
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.Created
       }
     }
 

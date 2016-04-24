@@ -22,7 +22,11 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  def componentsRoute: Route = pathPrefix("components") {
+  def componentsRoute: Route = pathSingleSlash {
+    get {
+      complete(MethodNotAllowed, None)
+    }
+  } ~ pathPrefix("components") {
     get {
       log.debug("get /components executed")
       complete("dummy response")
@@ -38,6 +42,7 @@ class LogReceiver extends Server  {
     }
   }
 
+  override def routes: Route = componentsRoute
   def routes: Route = componentsRoute
 
   private def handlePostLog(resultFuture: Future[Any]): Future[HttpResponse] = {
