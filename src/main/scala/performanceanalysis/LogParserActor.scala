@@ -27,8 +27,6 @@ class LogParserActor extends Actor with ActorLogging {
 
     case msg: SubmitLogs =>
       log.debug(s"received $msg in ${self.path}")
-      val metric = metricWithKey(msg.metricKey, metrics)
   }
 
-  def metricWithKey(key: String, metrics: List[Metric]): Option[Metric] = metrics.find(_.metricKey == key)
 }

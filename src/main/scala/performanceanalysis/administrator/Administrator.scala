@@ -44,7 +44,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
                     path("alerting-rules") {
                       entity(as[AlertingRule]) { rule =>
                         log.debug(s"Received POST for new rule: $rule for $componentId/$metricId")
-                        complete(handlePost(administratorActor ? RegisterNewAlertingRule(componentId, metricId, rule)))
+                        complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricId, rule)))
                       }
                     }
                   }

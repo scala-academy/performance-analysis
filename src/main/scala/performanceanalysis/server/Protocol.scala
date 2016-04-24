@@ -1,7 +1,6 @@
 package performanceanalysis.server
 
 import akka.actor.ActorRef
-import performanceanalysis.server.Protocol.Rules.AlertingRule
 import performanceanalysis.server.Protocol._
 import spray.json.DefaultJsonProtocol
 
@@ -48,7 +47,7 @@ object Protocol {
   /**
     * Used by LogReceiverActor towards LogReceiver to request processing of logs of a component
     */
-  case class SubmitLogs(componentId: String, logs: String, metricKey: String)
+  case class SubmitLogs(componentId: String, logs: String)
 
   /**
     * Used by AdministratorActor towards LogParserActor to request its details
@@ -80,6 +79,11 @@ object Protocol {
     */
   case class MetricRegistered(metric: Metric)
 
+  /**
+    * Used when posting a new log entry via LogReceiver
+    */
+  case class Log(log: String)
+
   object Rules {
 
     /**
@@ -91,23 +95,24 @@ object Protocol {
     case class Threshold(max: String) {
       def limit: Duration = Duration(max)
     }
+
     case class Action(url: String)
+
   }
 
   /**
     * Used by the Administrator towards AdministratorActor to add a new alerting rule.
     */
-  case class RegisterNewAlertingRule(componentId: String, metricKey: String, rule: AlertingRule)
+  case class RegisterAlertingRule(componentId: String, metricKey: String, rule: Rules.AlertingRule)
 
   /**
     * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
     */
-  case class AlertingRuleCreated(rule: AlertingRule)
-
-  /** Used for submitting a new log to measure via LogReceiver. */
-  case class LogMeasurable(logs: String, metricKey: String)
+  case class AlertingRuleCreated(rule: Rules.AlertingRule)
 
   case class CheckRuleBreak(logs: String, metric: Metric)
+
+  case class Action(url: String, message: String)
 }
 
 trait Protocol extends DefaultJsonProtocol {
@@ -115,10 +120,9 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
+  implicit val logFormatter = jsonFormat1(Log.apply)
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
   implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertingRule.apply)
-
-  implicit val logMeasurableFormatter = jsonFormat(LogMeasurable.apply, "metric-key", "log")
 }

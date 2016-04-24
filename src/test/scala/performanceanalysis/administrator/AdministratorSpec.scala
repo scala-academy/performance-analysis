@@ -95,7 +95,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val rule = AlertingRule(Threshold("2000 millis"), Action("dummy-action"))
       val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
 
-      probe.expectMsg(RegisterNewAlertingRule("cid", "mkey", rule))
+      probe.expectMsg(RegisterAlertingRule("cid", "mkey", rule))
       probe.reply(AlertingRuleCreated(rule))
 
       routeTestResult ~> check {

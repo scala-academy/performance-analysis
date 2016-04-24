@@ -19,12 +19,12 @@ class LogReceiverActorSpec(_system: ActorSystem) extends ActorSpecBase(_system) 
       val componentName = "newComponent1"
 
       // Verify that LogParserNotFound is returned when posting a log on an unknown component
-      testProbe.send(logReceiverActor, SubmitLogs(componentName, "test log line", "a metric key"))
+      testProbe.send(logReceiverActor, SubmitLogs(componentName, "test log line"))
       testProbe.expectMsgPF() { case LogParserNotFound(`componentName`) => true }
 
       // Register a new actor and verify that logs are now accepted for processing
       testProbe.send(logReceiverActor, RegisterNewLogParser(componentName, logParserProbe.ref))
-      testProbe.send(logReceiverActor, SubmitLogs(componentName, "test log line", "a metric key"))
+      testProbe.send(logReceiverActor, SubmitLogs(componentName, "test log line"))
       testProbe.expectMsgPF() { case "OK" => true }
     }
   }
