@@ -73,7 +73,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components by creating a new registered componentId" in new AdministratorWithProbe() {
-      val routeTestResult = Post("/components", RegisterComponent("RegisteredComponent1")) ~> routes
+      val routeTestResult = Post("/components/metrics", RegisterComponent("RegisteredComponent1")) ~> routes
 
       probe.expectMsg(RegisterComponent("RegisteredComponent1"))
       probe.reply(LogParserCreated("RegisteredComponent1"))
@@ -86,7 +86,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     "handle a POST on /components/logParserActor by creating a new registered componentId" in new AdministratorWithProbe() {
       val componentId = "bla"
       val metric = Metric("key", "+d")
-      val routeTestResult = Post(s"/components/$componentId", Metric("key", "+d")) ~> routes
+      val routeTestResult = Post(s"/components/$componentId/metrics", Metric("key", "+d")) ~> routes
 
       probe.expectMsg(RegisterMetric(componentId, metric))
       probe.reply(MetricRegistered(metric))
@@ -96,10 +96,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "create an alerting rule via a POST on alerting-rules endpoint" in new Administrator(system.deadLetters) {
-      val probe = TestProbe()
-      override protected val administratorActor = probe.ref
-
+    "create an alerting rule via a POST on alerting-rules endpoint" in new AdministratorWithProbe() {
       val rule = AlertingRule(Threshold("2000 millis"), Action("dummy-action"))
       val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
 

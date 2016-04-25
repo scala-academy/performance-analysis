@@ -43,7 +43,6 @@ class LogReceiver extends Server  {
   }
 
   override def routes: Route = componentsRoute
-  def routes: Route = componentsRoute
 
   private def handlePostLog(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
