@@ -33,9 +33,9 @@ class LogReceiver extends Server  {
     } ~ path(Segment) { componentId =>
       post {
         // Handle POST of an existing component
-        entity(as[String]) { logline =>
-          log.debug(s"Received POST on /components/$componentId with logline $logline")
-          complete(handlePost(logReceiverActor ? SubmitLog(componentId, logline)))
+        entity(as[String]) { logLine =>
+          log.debug(s"Received POST on /components/$componentId with log line $logLine")
+          complete(handlePost(logReceiverActor ? SubmitLog(componentId, logLine)))
         }
       }
     }
@@ -45,7 +45,7 @@ class LogReceiver extends Server  {
 
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
-      case LogSubmitted(componentId, logs) =>
+      case LogSubmitted(componentId, logLine) =>
         Future(HttpResponse(status = StatusCodes.Accepted))
       case LogParserNotFound(componentId) =>
         ???
