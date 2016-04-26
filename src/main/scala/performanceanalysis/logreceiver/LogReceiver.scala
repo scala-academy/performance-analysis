@@ -4,8 +4,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-
-import performanceanalysis.server.Protocol.{MetricRegistered, _}
+import performanceanalysis.server.Protocol.{LogParserNotFound, LogSubmitted, SubmitLog}
 import performanceanalysis.server.Server
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -30,11 +29,11 @@ class LogReceiver extends Server  {
     get {
       log.debug("get /components executed")
       complete("dummy response")
-    } ~ path(Segment) { componentId =>
+    } ~ path(Segment / "logs") { componentId =>
       post {
         // Handle POST of an existing component
         entity(as[String]) { logLine =>
-          log.debug(s"Received POST on /components/$componentId with log line $logLine")
+          log.debug(s"Received POST on /components/$componentId/logs with log line $logLine")
           complete(handlePost(logReceiverActor ? SubmitLog(componentId, logLine)))
         }
       }
