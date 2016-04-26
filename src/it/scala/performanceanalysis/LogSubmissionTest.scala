@@ -32,11 +32,11 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric"}"""
       awaitAdminPostResonse(path, data)
 
-      When("""I do a POST with {"logline" : "some action took 101 seconds", "metric-key" : "a-numerical-metric"} to /components/parsingConfiguredComponent/logs on the """ +
+      When("""I do a POST with {"logline" : "some action took 101 seconds"} to /components/parsingConfiguredComponent/logs on the """ +
           "LogReceiver port")
       val logPath = "/components/parsingConfiguredComponent"
-      val logData = """{"logline" : "some action took 101 seconds", "metric-key" : "a-numerical-metric"}"""
-      val response = logReceiverPostResponse(path, data)
+      val logData = """{"logline" : "some action took 101 seconds"}"""
+      val response = logReceiverPostResponse(logPath, logData)
 
       whenReady(response, timeout(1.seconds)) { result =>
         assert(result.getStatusCode() === 202)

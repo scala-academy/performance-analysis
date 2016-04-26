@@ -43,9 +43,14 @@ object Protocol {
   case class RegisteredComponents(componentIds: Set[String])
 
   /**
-    * Used by LogReceiverActor towards LogReceiver to request processing of logs of a component
+    * Used by LogReceiverActor towards LogReceiver to request processing of single log of a component
     */
-  case class SubmitLogs(componentId: String, logs: String)
+  case class SubmitLog(componentId: String, logLine: String)
+
+  /**
+    * Used by LogReceiverActor to signal a single log line of a component was submitted
+    */
+  case class LogSubmitted(componentId: String, logLine: String)
 
   /**
     * Used by AdministratorActor towards LogParserActor to request its details
