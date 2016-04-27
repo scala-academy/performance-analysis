@@ -24,30 +24,29 @@ libraryDependencies ++= {
     "com.typesafe.akka"     %% "akka-http-testkit"                    % akkaV            % "it,test",
     "org.scalatest"         %% "scalatest"                            % scalaTestV       % "it,test",
     "com.twitter"           %% "finagle-http"                         % finagleV         % "it",
-    "io.gatling.highcharts" %  "gatling-charts-highcharts"            % gatlingV         % "it,test,perf",
-    "io.gatling"            %  "gatling-test-framework"               % gatlingV         % "it,test,perf"
+    "io.gatling.highcharts" %  "gatling-charts-highcharts"            % gatlingV         % "it,test,gatling",
+    "io.gatling"            %  "gatling-test-framework"               % gatlingV         % "it,test,gatling"
   )
 }
 
 def isPerfTest(name: String): Boolean = name endsWith "Simulation"
 
-val PerfTest = config("perf") extend Test
-
 lazy val baseDir: String = s"${System.getProperty("user.dir")}"
 lazy val gatlingScalaSource: String = s"$baseDir/src/perf/scala"
+lazy val gatlingResource: String = s"$baseDir/src/perf/scala"
+lazy val gatlingTarget: String = s"$baseDir/target/scala-2.11/gatling-classes"
 
-//TODO: Gatling tests are not picked up
 
 lazy val root = project.in(file("."))
   .configs(Gatling)
-  .configs(PerfTest)
   .configs(IntegrationTest)
-  .settings(inConfig(PerfTest)(Defaults.testSettings): _*)
+  .settings(GatlingPlugin.gatlingSettings: _*)
   .settings(scalaSource in Gatling := new File(gatlingScalaSource))
+  .settings(resourceDirectory in Gatling := new File(gatlingScalaSource))
   .settings(testOptions in Gatling := Seq(Tests.Filter(isPerfTest(_))))
+  .settings(fullClasspath in Gatling += new File(s"$gatlingTarget"))
 
 Defaults.itSettings
-GatlingPlugin.gatlingSettings
 //scalariformSettings
 Revolver.settings
 //enablePlugins(JavaAppPackaging)
