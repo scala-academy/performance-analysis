@@ -19,3 +19,14 @@ Goal: learn programing with Scala and Akka in a real-world scenario.
 
 What do you call a Java repository?
 A garbage collection<Java>
+
+Run Gatling Simulations
+=======================
+
+To run all gatling tests
+
+`sbt gatling:test`
+
+To run single test
+
+`sbt gatling:testOnly <pacakge.simulation.class>`
