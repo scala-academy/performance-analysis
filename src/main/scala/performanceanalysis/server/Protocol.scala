@@ -30,7 +30,7 @@ object Protocol {
   /**
     * Used by Administrator towards AdministratorActor to request details of a component
     */
-  case class GetDetails(componentId: String)
+  case class GetMetrics(componentId: String)
 
   /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components

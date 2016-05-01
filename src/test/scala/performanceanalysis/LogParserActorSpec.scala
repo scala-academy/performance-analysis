@@ -3,7 +3,7 @@ package performanceanalysis
 import akka.actor.ActorSystem
 import akka.testkit.TestActorRef
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.{Details, Metric, MetricRegistered, RequestDetails}
+import performanceanalysis.server.Protocol._
 
 class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
 

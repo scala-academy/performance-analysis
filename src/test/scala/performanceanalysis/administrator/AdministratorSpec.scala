@@ -50,7 +50,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val componentId = "knownId"
       val routeTestResult = Get(s"/components/$componentId") ~> routes
 
-      probe.expectMsgPF() { case GetDetails(`componentId`) => true }
+      probe.expectMsgPF() { case GetMetrics(`componentId`) => true }
       probe.reply(Details(Nil))
 
       routeTestResult ~> check {
@@ -62,7 +62,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val componentId = "knownId2"
       val routeTestResult = Get(s"/components/$componentId/metrics") ~> routes
 
-      probe.expectMsgPF() { case GetDetails(`componentId`) => true }
+      probe.expectMsgPF() { case GetMetrics(`componentId`) => true }
       probe.reply(Details(Nil))
 
       routeTestResult ~> check {

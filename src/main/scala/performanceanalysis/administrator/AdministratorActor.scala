@@ -22,13 +22,13 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
 
   def normal(logParserActors: Map[String, ActorRef]): Receive = {
     case RegisterComponent(componentId) =>
-      handleRegisterComponent(logParserActors, componentId, sender)
-    case GetDetails(componentId) =>
-      handleGetDetails(logParserActors, componentId, sender)
+      handleRegisterComponent(logParserActors, componentId, sender())
+    case GetMetrics(componentId) =>
+      handleGetMetrics(logParserActors, componentId, sender())
     case GetRegisteredComponents =>
-      handleGetComponents(logParserActors, sender)
+      handleGetComponents(logParserActors, sender())
     case RegisterMetric(componentId, metric) =>
-      handleRegisterMetric(logParserActors, componentId, metric, sender)
+      handleRegisterMetric(logParserActors, componentId, metric, sender())
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -60,7 +60,7 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     }
   }
 
-  private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+  private def handleGetMetrics(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
     routeToLogParser(logParserActors, componentId, sender) { ref =>
       log.debug(s"Requesting details from ${ref.path}")
       (ref ? RequestDetails) pipeTo sender

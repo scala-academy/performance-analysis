@@ -47,7 +47,7 @@ class LogReceiver extends Server  {
       case LogSubmitted(componentId, logLine) =>
         Future(HttpResponse(status = StatusCodes.Accepted))
       case LogParserNotFound(componentId) =>
-        ???
+        Future(HttpResponse(status = StatusCodes.Forbidden))
     }
   }
 

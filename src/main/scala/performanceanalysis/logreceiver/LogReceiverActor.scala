@@ -26,7 +26,9 @@ class LogReceiverActor extends Actor with ActorLogging {
   private def handleSubmitLog(logParserActors: Map[String, ActorRef], componentId: String, logLine: String, sender: ActorRef) = {
     logParserActors.get(componentId) match {
       case None => sender ! LogParserNotFound(componentId)
-      case Some(actorRef) => sender ! LogSubmitted(componentId, logLine)
+      case Some(logParserActor) =>
+        logParserActor ! SubmitLog(componentId, logLine) // eventually log line will be parsed
+        sender ! LogSubmitted(componentId, logLine)
     }
   }
 

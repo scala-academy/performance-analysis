@@ -7,6 +7,7 @@ import org.scalatest.concurrent.ScalaFutures
 import performanceanalysis.utils.TwitterFutures
 
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with TwitterFutures {
 
@@ -16,38 +17,41 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       When("I do a HTTP GET to '/' on the LogReceiver port")
       val request  = http.Request(http.Method.Get, "/")
       val response = performLogReceiverRequest(request)
-      whenReady(response, timeout(1.seconds)) { result =>
+      whenReady(response, timeout(1 second)) { result =>
         assert(result.getStatusCode() === 405)
-        Then("the response should have statuscode 405")
+        Then("the response should have status code 405")
       }
     }
     scenario("Logs posted at the LogReceiver") {
       Given("the server is running")
 
-      And("""I registered a component with id "parsingConfiguredComponent"""")
-      registerComponent("parsingConfiguredComponent")
+      val componentId: String = "parsingConfiguredComponent"
+      And(s"I registered a component with id $componentId")
+      registerComponent(componentId)
 
-      And("""And a metric {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsingConfiguredComponent on the Administrator port""")
-      val path = "/components/parsingConfiguredComponent"
+      val path = "/components/" + componentId
       val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric"}"""
+
+      And(s"also registered a metric $data to /components/$componentId on the Administrator port")
       awaitAdminPostResonse(path, data)
 
-      When("""I do a POST with {"logline" : "some action took 101 seconds"} to /components/parsingConfiguredComponent/logs on the """ +
-          "LogReceiver port")
-      val logPath = "/components/parsingConfiguredComponent/logs"
+      val logPath = "/components/" + componentId + "/logs"
       val logData = """{"logline" : "some action took 101 seconds"}"""
+      When(s"I do a POST with $logData to /components/$componentId/logs on the LogReceiver port")
       val response = logReceiverPostResponse(logPath, logData)
 
-      whenReady(response, timeout(1.seconds)) { result =>
+      whenReady(response, timeout(1 second)) { result =>
         assert(result.getStatusCode() === 202)
-        Then("""the response should have statuscode 202""")
+        Then("the response should have status code 202")
       }
+
+
     }
   }
 
   def registerComponent(componentId: String): Response = {
     val path = "/components"
-    val data = s"""{"componentId" : "${componentId}"}"""
+    val data = s"""{"componentId" : "$componentId"}"""
     awaitAdminPostResonse(path, data)
   }
 

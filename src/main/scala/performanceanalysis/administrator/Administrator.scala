@@ -27,13 +27,13 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
     path(Segment / "metrics") { componentId =>
       get {
         // Handle GET of an existing component to obtain metrics only
-        complete(handleGet(administratorActor ? GetDetails(componentId)))
+        complete(handleGet(administratorActor ? GetMetrics(componentId)))
       }
     } ~
       path(Segment) { componentId =>
         get {
           // Handle GET of an existing component
-          complete(handleGet(administratorActor ? GetDetails(componentId)))
+          complete(handleGet(administratorActor ? GetMetrics(componentId)))
         } ~ post {
           // Handle POST of an existing component
           entity(as[Metric]) { metric =>

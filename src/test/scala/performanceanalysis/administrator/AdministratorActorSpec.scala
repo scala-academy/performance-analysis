@@ -51,7 +51,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       val componentName = "newComponent3"
 
       // Request details of an unknown component and verify that actor responds with LogParserNotFound message
-      testProbe.send(adminActor, GetDetails(componentName))
+      testProbe.send(adminActor, GetMetrics(componentName))
       testProbe.expectMsgPF() { case LogParserNotFound(`componentName`) => true }
     }
 
@@ -83,7 +83,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       val testProbe = TestProbe("testProbe")
       testProbe.send(adminActor, RegisterComponent(testComponentId))
       testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
-      testProbe.send(adminActor, GetDetails(testComponentId))
+      testProbe.send(adminActor, GetMetrics(testComponentId))
       componentTestProbe.expectMsg(RequestDetails)
       testProbe.expectMsgPF() { case Details(Nil) => true }
     }
