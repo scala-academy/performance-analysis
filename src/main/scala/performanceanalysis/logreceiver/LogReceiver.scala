@@ -21,7 +21,9 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  def componentsRoute: Route = pathSingleSlash {
+  override def routes: Route = componentsRoute
+
+  private def componentsRoute: Route = pathSingleSlash {
     get {
       complete(StatusCodes.MethodNotAllowed, None)
     }
@@ -40,13 +42,11 @@ class LogReceiver extends Server  {
     }
   }
 
-  override def routes: Route = componentsRoute
-
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
-      case LogSubmitted(componentId, logLine) =>
+      case LogSubmitted(_, _) =>
         Future(HttpResponse(status = StatusCodes.Accepted))
-      case LogParserNotFound(componentId) =>
+      case LogParserNotFound(_) =>
         Future(HttpResponse(status = StatusCodes.Forbidden))
     }
   }

@@ -30,8 +30,6 @@ class LogParserActor extends Actor with ActorLogging {
       log.debug(s"received post with metric $metric")
       context.become(normal(metric :: metrics, parsedLogs))
       sender ! MetricRegistered(metric)
-
-    case msg => log.debug(s"received $msg in ${self.path}")
   }
 
   private def findAllMatchedValues(pattern: Regex, logLine: String) = {

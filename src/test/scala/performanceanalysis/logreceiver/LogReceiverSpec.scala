@@ -19,6 +19,8 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
     override val logReceiverActor: ActorRef = probe.ref
   }
   "The log receiver" must {
+    val componentId = "someCompId"
+
     "handle a GET on /components response with status code 405" in new LogReceiver {
       Put() ~> Route.seal(routes) ~> check {
         status === StatusCodes.MethodNotAllowed
@@ -26,7 +28,6 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components/<existing-compId>/logs respond with status code 202" in new LogReceiverProbe() {
-      val componentId = "someCompId"
       val results = Post(s"/components/$componentId/logs", logLine) ~> routes
 
       probe.expectMsg(SubmitLog(componentId, logLine))
@@ -38,13 +39,12 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components/<non-existing-compId>/logs respond with status code 403" in new LogReceiverProbe() {
-      val componentId = "wrongCompId"
-      val results = Post(s"/components/$componentId/logs", logLine) ~> routes
+      val testResult = Post(s"/components/$componentId/logs", logLine) ~> routes
 
       probe.expectMsg(SubmitLog(componentId, logLine))
       probe.reply(LogParserNotFound(componentId))
 
-      results ~> check {
+      testResult ~> check {
         response.status shouldBe StatusCodes.Forbidden
       }
     }
