@@ -1,9 +1,8 @@
 package performanceanalysis
 
-import performanceanalysis.base.IntegrationTestBase
 import com.twitter.finagle.http
-import com.twitter.finagle.http.Response
 import org.scalatest.concurrent.ScalaFutures
+import performanceanalysis.base.IntegrationTestBase
 import performanceanalysis.utils.TwitterFutures
 
 import scala.concurrent.duration._
@@ -44,15 +43,6 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
         assert(result.getStatusCode() === 202)
         Then("the response should have status code 202")
       }
-
-
     }
   }
-
-  def registerComponent(componentId: String): Response = {
-    val path = "/components"
-    val data = s"""{"componentId" : "$componentId"}"""
-    awaitAdminPostResonse(path, data)
-  }
-
 }

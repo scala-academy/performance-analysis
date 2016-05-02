@@ -76,4 +76,10 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     val responseFuture = adminClient(request)
     com.twitter.util.Await.result(responseFuture)
   }
+
+  def registerComponent(componentId: String): Response = {
+    val path = "/components"
+    val data = s"""{"componentId" : "$componentId"}"""
+    awaitAdminPostResonse(path, data)
+  }
 }
