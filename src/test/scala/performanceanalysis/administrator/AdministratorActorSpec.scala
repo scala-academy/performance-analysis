@@ -3,6 +3,7 @@ package performanceanalysis.administrator
 import akka.actor._
 import akka.testkit.{TestActor, TestProbe}
 import performanceanalysis.base.ActorSpecBase
+import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -14,8 +15,8 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
   def this() = this(ActorSystem("AdministratorActorSpec"))
 
   "AdministratorActor" must {
-    val logParserTestProbe = TestProbe("LogParserProbe")
-    val adminActor = system.actorOf(Props(new AdministratorActor(logParserTestProbe.ref)))
+    val logReceiverProbe = TestProbe("LogParserProbe")
+    val adminActor = system.actorOf(Props(new AdministratorActor(logReceiverProbe.ref)))
     "respond with LogParserCreated and create a new child actor when an unknown component is registered" in {
       val testProbe = TestProbe("createChild1")
       val componentName = "newComponent1"
@@ -23,7 +24,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       // Register a new component and verify that actor responds with LogParserCreated message
       testProbe.send(adminActor, RegisterComponent(componentName))
       testProbe.expectMsgPF() { case LogParserCreated(`componentName`) => true }
-      logParserTestProbe.expectMsgPF() { case RegisterNewLogParser(`componentName`, _) => true }
+      logReceiverProbe.expectMsgPF() { case RegisterNewLogParser(`componentName`, _) => true }
 
       // Verify that child actor was created
       val childActorName = LogParserActorCreater.createActorName(componentName)
@@ -62,17 +63,13 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       testProbe.send(adminActor, GetRegisteredComponents)
       testProbe.expectMsgPF() { case RegisteredComponents(_) => true }
     }
+
   }
 
   "AdministratorActor (with testprobe as child)" must {
     val componentTestProbe = TestProbe("childactor")
-    val testComponentId = "newComponent4"
-    componentTestProbe.setAutoPilot(new TestActor.AutoPilot {
-      def run(sender: ActorRef, msg: Any): TestActor.AutoPilot = {
-        sender ! Details(Nil)
-        TestActor.NoAutoPilot
-      }
-    })
+
+
     trait TestLogParserActorCreater extends LogParserActorCreater {
       this: ActorLogging =>
       override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
@@ -80,12 +77,27 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
     val adminActor = system.actorOf(Props(new AdministratorActor(system.deadLetters) with TestLogParserActorCreater))
 
     "request a LogHandlerActor for details and forward the result to the requester" in {
+      val testComponentId = "newComponent4"
       val testProbe = TestProbe("testProbe")
       testProbe.send(adminActor, RegisterComponent(testComponentId))
       testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
       testProbe.send(adminActor, GetDetails(testComponentId))
       componentTestProbe.expectMsg(RequestDetails)
+      componentTestProbe.reply(Details(Nil))
       testProbe.expectMsgPF() { case Details(Nil) => true }
+    }
+
+    "register new alerting rule and foward result to requester" in {
+      val testComponentId = "cid"
+      val testProbe = TestProbe("administrator")
+      testProbe.send(adminActor, RegisterComponent(testComponentId))
+      testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
+      val rule = AlertingRule(Threshold("2000 millis"), RuleAction("dummy-action"))
+      val metricKey = "mkey"
+      testProbe.send(adminActor, RegisterAlertingRule(testComponentId, `metricKey`, rule))
+      componentTestProbe.expectMsgPF() {case RegisterAlertingRule(`testComponentId`, `metricKey`, `rule`) => true}
+      componentTestProbe.reply(AlertingRuleCreated(`testComponentId`, `metricKey`, `rule`))
+      testProbe.expectMsgPF() { case AlertingRuleCreated(`testComponentId`, `metricKey`, `rule`) => true}
     }
   }
 }

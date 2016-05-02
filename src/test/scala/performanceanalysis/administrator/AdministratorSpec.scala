@@ -101,7 +101,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
 
       probe.expectMsg(RegisterAlertingRule("cid", "mkey", rule))
-      probe.reply(AlertingRuleCreated(rule))
+      probe.reply(AlertingRuleCreated("cid", "mkey", rule))
 
       routeTestResult ~> check {
         response.status shouldBe Created

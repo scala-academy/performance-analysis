@@ -80,6 +80,11 @@ object Protocol {
   case class MetricRegistered(metric: Metric)
 
   /**
+    * Used by LogParserActor to indicated that requested metrics is not registered.
+    */
+  case class MetricNotFound(componentId: String, metricKey: String)
+
+  /**
     * Used when posting a new log entry via LogReceiver
     */
   case class Log(log: String)
@@ -108,10 +113,16 @@ object Protocol {
   /**
     * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
     */
-  case class AlertingRuleCreated(rule: Rules.AlertingRule)
+  case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertingRule)
 
-  case class CheckRuleBreak(logs: String, metric: Metric)
+  /**
+    * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.
+    */
+  case class CheckRuleBreak(value: String)
 
+  /**
+    * Used by ActionAlertActor to trigger an action when a rule breaks. Handled by AlertActionActor.
+    */
   case class Action(url: String, message: String)
 }
 

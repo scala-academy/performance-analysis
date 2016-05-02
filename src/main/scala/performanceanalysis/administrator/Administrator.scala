@@ -77,7 +77,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         ???
       case MetricRegistered(metric) =>
         Future(HttpResponse(status = StatusCodes.Created))
-      case AlertingRuleCreated(_) =>
+      case msg:AlertingRuleCreated =>
         Future(HttpResponse(status = Created))
     }
   }
