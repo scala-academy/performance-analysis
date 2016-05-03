@@ -33,7 +33,9 @@ class LogParserActor extends Actor with ActorLogging {
   }
 
   private def findAllMatchedValues(pattern: Regex, logLine: String) = {
-    pattern.findAllMatchIn(logLine).foldLeft(List[String]())((acc, regMatch) => regMatch.group(1) :: acc)
+    pattern.findAllMatchIn(logLine)
+      .filter(_.groupCount >= 1)
+      .foldLeft(List[String]())((acc, regMatch) => regMatch.group(1) :: acc)
   }
 
   private def parseLogLine(metrics: List[Metric], logLine: String, parsedLogs: Map[String, List[Any]]) = {

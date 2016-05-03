@@ -29,7 +29,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       system.eventStream.subscribe(testActor, classOf[UnhandledMessage])
       logParserActorRef ! metric
       expectMsg(MetricRegistered(metric))
-      val message: LogSubmitted = LogSubmitted("compId", "some 123")
+      val message: LogSubmitted = LogSubmitted("compId", "some 123 some 345 some 567")
       logParserActorRef ! message
       expectNoMsg()
     }
