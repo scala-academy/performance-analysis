@@ -28,24 +28,14 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
+      } ~ post {
+        // Handle POST of an existing component
+        entity(as[Metric]) { metric =>
+          log.debug(s"Received POST on /components/$componentId with entity $metric")
+          complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
+        }
       }
     } ~
-      path(Segment) { componentId =>
-        get {
-          // Handle GET of an existing component
-          complete(handleGet(administratorActor ? GetDetails(componentId)))
-        } ~ post {
-          // Handle POST of an existing component
-          entity(as[Metric]) { metric =>
-            log.debug(s"Received POST on /components/$componentId with entity $metric")
-            complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
-          }
-        } ~
-          patch {
-            // Handle PATCH of an existing component
-            ???
-          }
-      } ~
       get {
         // Handle GET (get list of all registered components)
         complete(handleGet(administratorActor ? GetRegisteredComponents))
