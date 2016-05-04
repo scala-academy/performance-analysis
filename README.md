@@ -30,3 +30,37 @@ To run all gatling tests
 To run single test
 
 `sbt gatling:testOnly <pacakge.simulation.class>`
+
+Actor Design
+============
+
+![Alt text](http://g.gravizo.com/g?
+  digraph G {
+    node [shape=box];
+    Administrator [shape=oval];
+    LogReceiver [shape=oval];
+    aize ="4,4";
+    AdministratorActor;
+    LogParserActor;
+    LogReceiverActor;
+    ;
+    Administrator -> AdministratorActor [label="RegisterMetric"];
+    Administrator -> AdministratorActor [label="GetRegisteredComponents"];
+    Administrator -> AdministratorActor [label="RegisterComponent"];
+    Administrator -> AdministratorActor [label="GetDetails"];
+    ;
+    AdministratorActor -> Administrator [label="MetricCreated"];
+    AdministratorActor -> Administrator [label="RegisteredComponents"];
+    AdministratorActor -> Administrator [label="LogParserCreated"];
+    AdministratorActor -> Administrator [label="LogParserExisted"];
+    AdministratorActor -> Administrator [label="Details"];
+    AdministratorActor -> Administrator [label="LogParserNotFound"];
+    ;
+    AdministratorActor -> LogParserActor [label="RequestDetails"];
+    AdministratorActor -> LogParserActor [label="Metric"];
+    LogParserActor -> AdministratorActor [label="Details"];
+    LogParserActor -> AdministratorActor [label="MetricRegistered"];
+    ;
+    LogReceiver -> LogReceiverActor [label="SubmitLogs"];
+  }
+)
