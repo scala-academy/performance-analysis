@@ -48,18 +48,6 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components/<known componentId> with details of that component" in new AdministratorWithProbe() {
-      val componentId = "knownId"
-      val routeTestResult = Get(s"/components/$componentId") ~> routes
-
-      probe.expectMsgPF() { case GetDetails(`componentId`) => true }
-      probe.reply(Details(Nil))
-
-      routeTestResult ~> check {
-        responseAs[Details] shouldBe Details(Nil)
-      }
-    }
-
     "handle a GET on /components/<known componentId>/metrics with details of that component" in new AdministratorWithProbe() {
       val componentId = "knownId2"
       val routeTestResult = Get(s"/components/$componentId/metrics") ~> routes

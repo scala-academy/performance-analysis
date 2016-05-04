@@ -102,5 +102,4 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
     }
   }
 
-
 }
