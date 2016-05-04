@@ -29,6 +29,8 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetComponents(logParserActors, sender)
     case RegisterMetric(componentId, metric) =>
       handleRegisterMetric(logParserActors, componentId, metric, sender)
+    case msg:RegisterAlertingRule =>
+      handleRegisterAlertingRule(logParserActors, msg);
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -71,6 +73,13 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     routeToLogParser(logParserActors, componentId, sender) { ref =>
         log.debug(s"Sending metric registration to ${ref.path}")
         (ref ? metric) pipeTo sender
+    }
+  }
+
+  private def handleRegisterAlertingRule(logParserActors: Map[String, ActorRef], msg: RegisterAlertingRule) = {
+    routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
+      log.debug(s"Sending new alerting rule to ${ref.path}")
+      (ref ? msg) pipeTo sender()
     }
   }
 }

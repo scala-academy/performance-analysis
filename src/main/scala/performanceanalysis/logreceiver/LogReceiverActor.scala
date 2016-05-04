@@ -18,15 +18,18 @@ class LogReceiverActor extends Actor with ActorLogging {
 
   def normal(logParserActors: Map[String, ActorRef]): Receive = {
     case SubmitLogs(componentId, logs) =>
-      handleSubmitLogs(logParserActors, componentId, logs, sender)
+      handleSubmitLogs(logParserActors, componentId, logs)
     case RegisterNewLogParser(componentName, newLogParser) =>
       handleNewLogParser(logParserActors, componentName, newLogParser)
   }
 
-  private def handleSubmitLogs(logParserActors: Map[String, ActorRef], componentId: String, logs: String, sender: ActorRef) = {
+  private def handleSubmitLogs(logParserActors: Map[String, ActorRef], componentId: String, logs: String) = {
     logParserActors.get(componentId) match {
       case None => sender ! LogParserNotFound(componentId)
-      case Some(actorRef) => sender ! "OK"
+      case Some(actorRef) =>
+        actorRef ! SubmitLogs(componentId, logs)
+        sender() ! "OK"
+
     }
   }
 
