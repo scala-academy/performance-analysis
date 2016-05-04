@@ -30,21 +30,22 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
-      } ~ patch {
-        // Handle PATCH of an existing component
-        ???
+
       } ~ pathPrefix("metrics") {
+
             post {
               pathEnd {
                 entity(as[Metric]) { metric =>
+
                   log.debug(s"Received POST on /components/$componentId with entity $metric")
                   complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
                 }
-              } ~ pathPrefix(Segment) { metricId =>
+              } ~ pathPrefix(Segment) { metricKey =>
+
                     path("alerting-rules") {
                       entity(as[AlertingRule]) { rule =>
-                        log.debug(s"Received POST for new rule: $rule for $componentId/$metricId")
-                        complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricId, rule)))
+                        log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
+                        complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
                       }
                     }
                   }
