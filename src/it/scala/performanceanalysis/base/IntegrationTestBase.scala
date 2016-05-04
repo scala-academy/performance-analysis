@@ -11,12 +11,18 @@ import org.scalatest._
 import performanceanalysis.administrator.Administrator
 import performanceanalysis.logreceiver.LogReceiver
 import performanceanalysis.server.Config
+import performanceanalysis.utils.TwitterFutures
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.reflectiveCalls
 
-trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers with BeforeAndAfterAll {
+trait IntegrationTestBase
+  extends FeatureSpec
+  with GivenWhenThen
+  with Matchers
+  with BeforeAndAfterAll
+  with TwitterFutures {
 
   trait TestConfig extends Config {
     override lazy val adminHttpInterface = "localhost"
@@ -60,15 +66,18 @@ trait IntegrationTestBase extends FeatureSpec with GivenWhenThen with Matchers w
     RequestBuilder().url(url).buildGet()
   }
 
+  def awaitResponse(server: Service[Request, Response], request: Request): Response = {
+    val responseFuture = server(request)
+    responseFuture.futureValue
+  }
+
   def awaitAdminPostResonse(path: String, data: String): Response = {
     val request = buildPostRequest(adminRequestHost, path, data)
-    val responseFuture = adminClient(request)
-    com.twitter.util.Await.result(responseFuture)
+    awaitResponse(adminClient, request)
   }
 
   def awaitAdminGetResonse(path: String): Response = {
     val request = buildGetRequest(adminRequestHost, path)
-    val responseFuture = adminClient(request)
-    com.twitter.util.Await.result(responseFuture)
+    awaitResponse(adminClient, request)
   }
 }
