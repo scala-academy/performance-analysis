@@ -1,7 +1,7 @@
 //import scalariform.formatter.preferences._
 import io.gatling.sbt.GatlingPlugin
 
-name          := """scala-in-practise-performance analysis"""
+name          := """Periphas"""
 organization  := "com.github.scala-academy"
 version       := "0.0.1"
 scalaVersion  := "2.11.7"
