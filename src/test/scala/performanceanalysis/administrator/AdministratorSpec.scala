@@ -46,18 +46,6 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components/<known componentId> with details of that component" in new AdministratorWithProbe() {
-      val componentId = "knownId"
-      val routeTestResult = Get(s"/components/$componentId") ~> routes
-
-      probe.expectMsgPF() { case GetDetails(`componentId`) => true }
-      probe.reply(Details(Nil))
-
-      routeTestResult ~> check {
-        responseAs[Details] shouldBe Details(Nil)
-      }
-    }
-
     "handle a GET on /components/<known componentId>/metrics with details of that component" in new AdministratorWithProbe() {
       val componentId = "knownId2"
       val routeTestResult = Get(s"/components/$componentId/metrics") ~> routes
@@ -84,7 +72,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     "handle a POST on /components/logParserActor by creating a new registered componentId" in new AdministratorWithProbe() {
       val componentId = "bla"
       val metric = Metric("key", "+d")
-      val routeTestResult = Post(s"/components/$componentId", Metric("key", "+d")) ~> routes
+      val routeTestResult = Post(s"/components/$componentId/metrics", Metric("key", "+d")) ~> routes
 
       probe.expectMsg(RegisterMetric(componentId, metric))
       probe.reply(MetricRegistered(metric))

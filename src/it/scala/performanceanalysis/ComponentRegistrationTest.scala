@@ -40,8 +40,8 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       And("""I registered a component with id "parsConfigComp"""")
       registerComponent("parsConfigComp")
 
-      When("""I do a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp on the Administrator port""")
-      val path = "/components/parsConfigComp"
+      When("""I do a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp/metrics on the Administrator port""")
+      val path = "/components/parsConfigComp/metrics"
       val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric"}"""
       val parseResponse = awaitAdminPostResonse(path, data)
 
@@ -56,8 +56,8 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       And("""I registered a component with id "parsConfigComp"""")
       registerComponent("parsConfigComp2")
 
-      When("""And I did a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp2 on the Administrator port""")
-      val path = "/components/parsConfigComp2"
+      When("""And I did a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp2/metrics on the Administrator port""")
+      val path = "/components/parsConfigComp2/metrics"
       val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric"}"""
       awaitAdminPostResonse(path, data)
 
