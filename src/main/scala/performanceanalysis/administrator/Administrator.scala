@@ -2,7 +2,7 @@ package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.StatusCodes.Created
+import akka.http.scaladsl.model.StatusCodes.{Created, NotFound}
 import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
@@ -76,9 +76,11 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case LogParserExisted(componentId) =>
         ???
       case MetricRegistered(metric) =>
-        Future(HttpResponse(status = StatusCodes.Created))
+        Future(HttpResponse(status = Created))
       case msg:AlertingRuleCreated =>
         Future(HttpResponse(status = Created))
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
     }
   }
 
