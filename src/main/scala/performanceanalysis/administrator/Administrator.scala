@@ -2,10 +2,12 @@ package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
+import akka.http.scaladsl.model.StatusCodes.{Created, NotFound}
 import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
+import performanceanalysis.server.Protocol.Rules.AlertingRule
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
 import performanceanalysis.server.Server
 
@@ -24,17 +26,34 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
   def componentsRoute: Route = pathPrefix("components") {
-    path(Segment / "metrics") { componentId =>
+    pathPrefix(Segment) { componentId =>
       get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
-      } ~ post {
-        // Handle POST of an existing component
-        entity(as[Metric]) { metric =>
-          log.debug(s"Received POST on /components/$componentId with entity $metric")
-          complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
-        }
-      }
+
+      } ~ pathPrefix("metrics") {
+
+            post {
+              pathEnd {
+                entity(as[Metric]) { metric =>
+
+                  log.debug(s"Received POST on /components/$componentId with entity $metric")
+                  complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
+                }
+              } ~ pathPrefix(Segment) { metricKey =>
+
+                    path("alerting-rules") {
+                      entity(as[AlertingRule]) { rule =>
+                        log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
+                        complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
+                      }
+                    }
+                  }
+            } ~ get {
+                  // Handle GET of an existing component
+                  complete(handleGet(administratorActor ? GetDetails(componentId)))
+                }
+          }
     } ~
       get {
         // Handle GET (get list of all registered components)
@@ -54,11 +73,15 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case LogParserCreated(componentId) =>
-        Future(HttpResponse(status = StatusCodes.Created))
+        Future(HttpResponse(status = Created))
       case LogParserExisted(componentId) =>
         ???
       case MetricRegistered(metric) =>
-        Future(HttpResponse(status = StatusCodes.Created))
+        Future(HttpResponse(status = Created))
+      case msg:AlertingRuleCreated =>
+        Future(HttpResponse(status = Created))
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
     }
   }
 

@@ -4,6 +4,8 @@ import akka.actor.ActorRef
 import performanceanalysis.server.Protocol._
 import spray.json.DefaultJsonProtocol
 
+import scala.concurrent.duration.Duration
+
 object Protocol {
 
   /**
@@ -58,7 +60,7 @@ object Protocol {
   case class Details(metrics: List[Metric])
 
   /**
-    * Used by Administrator towards LogReceiver to notify it ofa new LogReceiver actor
+    * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
   case class RegisterNewLogParser(componentId: String, actor: ActorRef)
 
@@ -77,6 +79,46 @@ object Protocol {
     */
   case class MetricRegistered(metric: Metric)
 
+  /**
+    * Used by LogParserActor to indicated that requested metrics is not registered.
+    */
+  case class MetricNotFound(componentId: String, metricKey: String)
+
+  object Rules {
+
+    /**
+      * Encapsulates a basic alerting rule.
+      */
+    case class AlertingRule(threshold: Threshold, action: Action)
+
+    /** Defines threshold of a rule. */
+    case class Threshold(max: String) {
+      def limit: Duration = Duration(max)
+    }
+
+    case class Action(url: String)
+
+  }
+
+  /**
+    * Used by the Administrator towards AdministratorActor to add a new alerting rule.
+    */
+  case class RegisterAlertingRule(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+
+  /**
+    * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
+    */
+  case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+
+  /**
+    * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.
+    */
+  case class CheckRuleBreak(value: String)
+
+  /**
+    * Used by ActionAlertActor to trigger an action when a rule breaks. Handled by AlertActionActor.
+    */
+  case class Action(url: String, message: String)
 }
 
 trait Protocol extends DefaultJsonProtocol {
@@ -84,4 +126,8 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
+
+  implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
+  implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
+  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertingRule.apply)
 }
