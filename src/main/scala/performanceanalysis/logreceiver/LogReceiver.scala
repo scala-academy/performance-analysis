@@ -34,8 +34,8 @@ class LogReceiver extends Server  {
     pathPrefix(Segment) { componentId =>
       path("logs") {
         post {
-          entity(as[Log]) { entity =>
-            complete(handlePostLog(logReceiverActor ? SubmitLogs(componentId = componentId, logs = entity.log)))
+          entity(as[String]) { logLine =>
+            complete(handlePostLog(logReceiverActor ? SubmitLogs(componentId = componentId, logs = logLine)))
           }
         }
       }

@@ -84,11 +84,6 @@ object Protocol {
     */
   case class MetricNotFound(componentId: String, metricKey: String)
 
-  /**
-    * Used when posting a new log entry via LogReceiver
-    */
-  case class Log(log: String)
-
   object Rules {
 
     /**
@@ -131,7 +126,6 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
-  implicit val logFormatter = jsonFormat1(Log.apply)
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
