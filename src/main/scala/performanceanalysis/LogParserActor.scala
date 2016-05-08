@@ -5,6 +5,8 @@ import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.{AlertingRuleCreated, CheckRuleBreak, _}
 
+import scala.util.matching.Regex
+
 /**
   * Created by m06f791 on 25-3-2016.
   */
@@ -15,59 +17,62 @@ object LogParserActor {
 }
 
 class LogParserActor extends Actor with ActorLogging {
-
   this: AlertRuleActorCreator =>
+  private type Metrics = List[Metric]
+  private type Monitor = ActorRef
+  private type Monitors = Map[MetricKey, List[Monitor]]
 
   def receive: Receive = normal(Nil, Map())
 
-  def normal(metrics: List[Metric], metricToAlertRuleActors: Map[MetricKey, List[ActorRef]]): Receive = {
+  def normal(metrics: Metrics, monitors: Monitors): Receive = {
     case RequestDetails =>
       log.debug("received request for details")
       sender ! Details(metrics)
 
     case metric: Metric =>
       log.debug("received post with metric {}", metric)
-      context.become(normal(metric :: metrics, metricToAlertRuleActors))
+      context.become(normal(metric :: metrics, monitors))
       sender ! MetricRegistered(metric)
 
-    case msg: SubmitLogs =>
-      handleSubmitLogs(msg, metrics, metricToAlertRuleActors)
+    case msg: SubmitLog =>
+      handleSubmitLog(msg, metrics, monitors)
 
-    case msg: RegisterAlertingRule =>
-      log.debug("received new alert rule {} in {}", msg, self.path)
+    case RegisterAlertingRule(compId, metricKey, rule) =>
+      log.debug("received new alert rule {} in {}", rule, self.path)
 
-      metricWithKey(msg.metricKey, metrics) match {
-        case None => sender() ! MetricNotFound(msg.componentId, msg.metricKey)
+      findMetric(metricKey, metrics) match {
+        case None => sender() ! MetricNotFound(compId, metricKey)
         case Some(metric) =>
-          sender() ! AlertingRuleCreated(msg.componentId, msg.metricKey, msg.rule)
-          context.become(normal(metrics, updateMetricToAlertRuleActors(metricToAlertRuleActors, msg)))
+          sender() ! AlertingRuleCreated(compId, metricKey, rule)
+          val newMonitor = create(context, rule, compId, metricKey)
+          context.become(normal(metrics, updateMonitors(monitors, newMonitor, metricKey)))
       }
 
   }
 
-  private def metricWithKey(metricKey: String, metrics: List[Metric]) =
+  private def findMetric(metricKey: MetricKey, metrics: Metrics):Option[Metric] = {
     metrics.find(_.metricKey == metricKey)
-
-  private def updateMetricToAlertRuleActors(metricToAlertActions: Map[MetricKey, List[ActorRef]], msg: RegisterAlertingRule) = {
-    val alertRuleActor = create(context, msg.rule, msg.componentId, msg.metricKey)
-    val updatedActionActorsForMetric: List[ActorRef] = alertRuleActor :: metricToAlertActions.getOrElse(msg.metricKey, Nil)
-    metricToAlertActions + (msg.metricKey -> updatedActionActorsForMetric)
   }
 
-  private def handleSubmitLogs(msg: SubmitLogs, metrics: List[Metric], metricToAlertActions: Map[MetricKey, List[ActorRef]]) {
+  private def updateMonitors(monitors: Monitors, newMonitor: Monitor, key: MetricKey): Monitors = {
+    monitors + (key -> (newMonitor :: monitors.getOrElse(key, Nil)))
+  }
+
+  private def handleSubmitLog(msg: SubmitLog, metrics: Metrics, monitors: Monitors) {
     log.debug("received {} in {}", msg, self.path)
-    for (metric <- metrics) {
-      val parsedValue = parseLogLine(msg.logs, metric)
-
-      for (value <- parsedValue;
-           alertActionActor <- metricToAlertActions(metric.metricKey)) {
-        log.info("sending {} to {}", CheckRuleBreak(value), alertActionActor.path)
-        alertActionActor ! CheckRuleBreak(value)
-      }
-
+    for {
+      metric <- metrics
+      value <- parseLogLine(msg.logLine, metric)
+      monitor <- monitors(metric.metricKey)
+    } {
+      log.info("sending {} to {}", CheckRuleBreak(value), monitor.path)
+      monitor ! CheckRuleBreak(value)
     }
   }
 
-  private def parseLogLine(log: String, metric: Metric) = metric.regex.r.findFirstIn(log)
+  private def parseLogLine(logLine: String, metric: Metric):Option[String] = {
+    val pattern: Regex = metric.regex.r
+    pattern.findFirstMatchIn(logLine).filter(_.groupCount >= 1).map(_  group 1)
+  }
 
 }
