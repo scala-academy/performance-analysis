@@ -81,6 +81,11 @@ trait IntegrationTestBase
     awaitResponse(adminClient, request)
   }
 
+  def awaitLogReceiverPostResonse(path: String, data: String): Response = {
+    val request = buildPostRequest(logReceiverRequestHost, path, data)
+    awaitResponse(logReceiverClient, request)
+  }
+
   def logReceiverPostResponse(path: String, data: String): Future[Response] = {
     val request = buildPostRequest(logReceiverRequestHost, path, data)
     logReceiverClient(request)
