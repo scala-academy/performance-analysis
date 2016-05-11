@@ -27,9 +27,9 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components response with status code 405" in new LogReceiver {
+    "handle a GET on /components response with status code 200" in new LogReceiver {
       Get("/components") ~> Route.seal(routes) ~> check {
-        status === StatusCodes.OK
+        status shouldBe StatusCodes.OK
       }
     }
 
@@ -44,7 +44,7 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a POST on /components/<non-existing-compId>/logs respond with status code 403" in new LogReceiverProbe() {
+    "handle a POST on /components/<non-existing-compId>/logs respond with status code 404" in new LogReceiverProbe() {
       val testResult = Post(s"/components/$componentId/logs", logLine) ~> routes
 
       probe.expectMsg(SubmitLog(componentId, logLine))
