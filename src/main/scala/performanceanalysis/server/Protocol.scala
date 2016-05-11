@@ -34,6 +34,12 @@ object Protocol {
     */
   case class GetDetails(componentId: String)
 
+  case class GetAlertRules(componentId: String, metricKey: String)
+
+  case class RequestAlertRules(metricKey: String)
+
+  case class AlertRuleDetails(alertRules: Set[Rules.AlertingRule])
+
   /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components
     */
@@ -109,6 +115,16 @@ object Protocol {
     * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
     */
   case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+
+  /**
+    * Used by the Administrator towards AdministratorActor to delete all alerting rules
+    */
+  case class DeleteAllAlertingRules(componentId: String, metricKey: String)
+
+  /**
+    * Used by AdministratorActor towards Administrator to indicate that the rules were successfully deleted.
+    */
+  case class AlertRulesDeleted(componentId: String)
 
   /**
     * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.

@@ -84,7 +84,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "create an alerting rule via a POST on alerting-rules endpoint" in new AdministratorWithProbe() {
+    "handle a POST on /components/<component>/metrics/<mkey>/alerting-rules by creating a new alerting rule" in new AdministratorWithProbe() {
       val rule = AlertingRule(Threshold("2000 millis"), Action("dummy-action"))
       val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
 

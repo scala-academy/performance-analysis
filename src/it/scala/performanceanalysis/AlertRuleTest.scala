@@ -5,7 +5,7 @@ import performanceanalysis.base.IntegrationTestBase
 import performanceanalysis.server.Protocol
 
 
-class AlertingRulesTest extends IntegrationTestBase with Protocol {
+class AlertRuleTest extends IntegrationTestBase with Protocol {
 
   feature("Altering rules") {
     scenario("Register an alerting rule") {
@@ -22,7 +22,7 @@ class AlertingRulesTest extends IntegrationTestBase with Protocol {
         """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric"}""")
       val registerMetricResponseFuture = performAdminRequest(registerMetricRequest)
       val registerMetricResponse = Await.result(registerMetricResponseFuture)
-      registerCompResponse.statusCode shouldBe 201
+      registerMetricResponse.statusCode shouldBe 201
 
       val alertPayload = "{\"threshold\": {\"max\": \"2000 ms\"}, \"action\": {\"url\": \"dummy-action\"}}"
 

@@ -66,6 +66,11 @@ trait IntegrationTestBase
     RequestBuilder().url(url).buildGet()
   }
 
+  def buildDeleteRequest(host: String, path: String): Request = {
+    val url = s"http://$host$path"
+    RequestBuilder().url(url).buildDelete()
+  }
+
   def awaitResponse(server: Service[Request, Response], request: Request): Response = {
     val responseFuture = server(request)
     responseFuture.futureValue

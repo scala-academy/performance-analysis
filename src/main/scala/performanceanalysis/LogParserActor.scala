@@ -1,9 +1,11 @@
 package performanceanalysis
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.LogParserActor.MetricKey
+import akka.actor._
+import performanceanalysis.LogParserActor.{MetricRuleActorMap, MetricKey}
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.{AlertingRuleCreated, CheckRuleBreak, _}
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * Created by m06f791 on 25-3-2016.
@@ -11,6 +13,7 @@ import performanceanalysis.server.Protocol.{AlertingRuleCreated, CheckRuleBreak,
 object LogParserActor {
 
   type MetricKey = String
+  type MetricRuleActorMap = Map[MetricKey, List[ActorRef]]
   def props: Props = Props(new LogParserActor() with AlertRuleActorCreator)
 }
 
@@ -20,18 +23,25 @@ class LogParserActor extends Actor with ActorLogging {
 
   def receive: Receive = normal(Nil, Map())
 
-  def normal(metrics: List[Metric], metricToAlertRuleActors: Map[MetricKey, List[ActorRef]]): Receive = {
+  def normal(metrics: List[Metric], metricToAlertRuleActors: MetricRuleActorMap): Receive = {
     case RequestDetails =>
       log.debug("received request for details")
       sender ! Details(metrics)
 
+    case RequestAlertRules(metricKey) =>
+      log.debug("received request for alert rules of {}")
+      handleGetAlertRules(metricToAlertRuleActors, metricKey)
+
     case metric: Metric =>
       log.debug("received post with metric {}", metric)
       context.become(normal(metric :: metrics, metricToAlertRuleActors))
-      sender ! MetricRegistered(metric)
+      sender() ! MetricRegistered(metric)
 
     case msg: SubmitLogs =>
       handleSubmitLogs(msg, metrics, metricToAlertRuleActors)
+
+    case msg: DeleteAllAlertingRules =>
+      handleDeleteRules(metrics, metricToAlertRuleActors, msg)
 
     case msg: RegisterAlertingRule =>
       log.debug("received new alert rule {} in {}", msg, self.path)
@@ -42,16 +52,41 @@ class LogParserActor extends Actor with ActorLogging {
           sender() ! AlertingRuleCreated(msg.componentId, msg.metricKey, msg.rule)
           context.become(normal(metrics, updateMetricToAlertRuleActors(metricToAlertRuleActors, msg)))
       }
-
   }
 
   private def metricWithKey(metricKey: String, metrics: List[Metric]) =
     metrics.find(_.metricKey == metricKey)
 
-  private def updateMetricToAlertRuleActors(metricToAlertActions: Map[MetricKey, List[ActorRef]], msg: RegisterAlertingRule) = {
+  private def updateMetricToAlertRuleActors(metricToAlertActions: MetricRuleActorMap, msg: RegisterAlertingRule) = {
     val alertRuleActor = create(context, msg.rule, msg.componentId, msg.metricKey)
     val updatedActionActorsForMetric: List[ActorRef] = alertRuleActor :: metricToAlertActions.getOrElse(msg.metricKey, Nil)
     metricToAlertActions + (msg.metricKey -> updatedActionActorsForMetric)
+  }
+
+  private def handleGetAlertRules(metricToAlertRuleActors: MetricRuleActorMap, metricKey: String) = {
+    metricToAlertRuleActors.get(metricKey) match {
+      case None =>
+        sender() ! MetricNotFound
+      case Some(ruleList) =>
+        // TODO: fill the details with the actual details
+        sender() ! AlertRuleDetails
+    }
+  }
+
+  private def handleDeleteRules(metrics: List[Metric], metricToAlertRuleActors: MetricRuleActorMap, msg: DeleteAllAlertingRules) = {
+    log.debug("received delete request for all rules on metric {}", msg.metricKey)
+
+    metricToAlertRuleActors.get(msg.metricKey) match {
+      case None =>
+        sender() ! AlertRulesDeleted(msg.componentId)
+      case Some(ruleList) =>
+        for (ruleActor <- ruleList) {
+          context.stop(ruleActor)
+        }
+
+        context.become(normal(metrics, metricToAlertRuleActors - msg.metricKey))
+        sender() ! AlertRulesDeleted(msg.componentId)
+    }
   }
 
   private def handleSubmitLogs(msg: SubmitLogs, metrics: List[Metric], metricToAlertActions: Map[MetricKey, List[ActorRef]]) {

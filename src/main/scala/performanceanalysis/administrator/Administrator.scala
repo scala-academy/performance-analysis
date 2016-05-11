@@ -30,30 +30,33 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
-
       } ~ pathPrefix("metrics") {
+        pathEnd {
+          post {
+            entity(as[Metric]) { metric =>
 
-            post {
-              pathEnd {
-                entity(as[Metric]) { metric =>
-
-                  log.debug(s"Received POST on /components/$componentId with entity $metric")
-                  complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
-                }
-              } ~ pathPrefix(Segment) { metricKey =>
-
-                    path("alerting-rules") {
-                      entity(as[AlertingRule]) { rule =>
-                        log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
-                        complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
-                      }
-                    }
-                  }
-            } ~ get {
-                  // Handle GET of an existing component
-                  complete(handleGet(administratorActor ? GetDetails(componentId)))
-                }
+              log.debug(s"Received POST on /components/$componentId with entity $metric")
+              complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
+            }
           }
+        } ~ pathPrefix(Segment) { metricKey =>
+          path("alerting-rules") {
+            post {
+              entity(as[AlertingRule]) { rule =>
+                log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
+                complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
+              }
+            } ~ get {
+              // Handle GET of an existing component
+              complete(handleGetAlertRules(administratorActor ? GetAlertRules(componentId, metricKey)))
+            } ~ delete {
+              // Delete all registered alert rules
+              log.debug("Received DELETE for all rules for {}/{}", componentId, metricKey)
+              complete(handleDelete(administratorActor ? DeleteAllAlertingRules(componentId, metricKey)))
+            }
+          }
+        }
+      }
     } ~
       get {
         // Handle GET (get list of all registered components)
@@ -81,6 +84,25 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case msg:AlertingRuleCreated =>
         Future(HttpResponse(status = Created))
       case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
+    }
+  }
+
+  private def handleDelete(resultFuture: Future[Any]): Future[HttpResponse] = {
+    resultFuture.flatMap {
+      case AlertRulesDeleted(componentId) =>
+        log.debug("Successful delete of alert rules for {}", componentId)
+        Future(HttpResponse(status = StatusCodes.NoContent))
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
+    }
+  }
+
+  private def handleGetAlertRules(resultFuture: Future[Any]): Future[HttpResponse] = {
+    resultFuture.flatMap {
+      case AlertRuleDetails(details) =>
+        Future(HttpResponse())
+      case MetricNotFound =>
         Future(HttpResponse(status = NotFound))
     }
   }
