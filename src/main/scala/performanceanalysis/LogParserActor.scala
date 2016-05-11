@@ -13,6 +13,7 @@ import scala.util.matching.Regex
 object LogParserActor {
 
   type MetricKey = String
+
   def props: Props = Props(new LogParserActor() with AlertRuleActorCreator)
 }
 
@@ -50,7 +51,7 @@ class LogParserActor extends Actor with ActorLogging {
 
   }
 
-  private def findMetric(metricKey: MetricKey, metrics: Metrics):Option[Metric] = {
+  private def findMetric(metricKey: MetricKey, metrics: Metrics): Option[Metric] = {
     metrics.find(_.metricKey == metricKey)
   }
 
@@ -62,7 +63,7 @@ class LogParserActor extends Actor with ActorLogging {
     log.debug("received {} in {}", msg, self.path)
     for {
       metric <- metrics
-      value <- parseLogLine(msg.logLine, metric)
+      value <- parseLogLine(msg.logLine, metric).metric
       monitor <- monitors(metric.metricKey)
     } {
       log.info("sending {} to {}", CheckRuleBreak(value), monitor.path)
@@ -70,9 +71,10 @@ class LogParserActor extends Actor with ActorLogging {
     }
   }
 
-  private def parseLogLine(logLine: String, metric: Metric):Option[String] = {
+  private def parseLogLine(logLine: String, metric: Metric): ParsedLine = {
     val pattern: Regex = metric.regex.r
-    pattern.findFirstMatchIn(logLine).filter(_.groupCount >= 1).map(_  group 1)
+    val parser = LineParser(pattern)
+    parser.parse(logLine)
   }
 
 }
