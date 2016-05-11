@@ -60,13 +60,15 @@ class LogParserActor extends Actor with ActorLogging {
 
   private def handleSubmitLog(msg: SubmitLog, metrics: Metrics, monitors: Map[MetricKey, List[Monitor]]) {
     log.debug("received {} in {}", msg, self.path)
-    for {
-      metric <- metrics
-      value <- parseLogLine(msg.logLine, metric).metric
-      monitor <- monitors(metric.metricKey)
-    } {
-      log.info("sending {} to {}", CheckRuleBreak(value), monitor.path)
-      monitor ! CheckRuleBreak(value)
+    metrics.foreach { metric =>
+      val parseResult = parseLogLine(msg.logLine, metric)
+      for {
+        value <- parseResult.metric
+        monitor <- monitors(metric.metricKey)
+      } {
+        log.info("sending {} to {}", CheckRuleBreak(value), monitor.path)
+        monitor ! CheckRuleBreak(value)
+      }
     }
   }
 
