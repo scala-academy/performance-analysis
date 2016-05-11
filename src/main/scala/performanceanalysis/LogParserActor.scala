@@ -21,22 +21,21 @@ class LogParserActor extends Actor with ActorLogging {
   this: AlertRuleActorCreator =>
   private type Metrics = List[Metric]
   private type Monitor = ActorRef
-  private type Monitors = Map[MetricKey, List[Monitor]]
 
   def receive: Receive = normal(Nil, Map())
 
-  def normal(metrics: Metrics, monitors: Monitors): Receive = {
+  def normal(metrics: List[Metric], alertsByMetricKey: Map[MetricKey, List[Monitor]]): Receive = {
     case RequestDetails =>
       log.debug("received request for details")
       sender ! Details(metrics)
 
     case metric: Metric =>
       log.debug("received post with metric {}", metric)
-      context.become(normal(metric :: metrics, monitors))
+      context.become(normal(metric :: metrics, alertsByMetricKey))
       sender ! MetricRegistered(metric)
 
     case msg: SubmitLog =>
-      handleSubmitLog(msg, metrics, monitors)
+      handleSubmitLog(msg, metrics, alertsByMetricKey)
 
     case RegisterAlertingRule(compId, metricKey, rule) =>
       log.debug("received new alert rule {} in {}", rule, self.path)
@@ -46,7 +45,7 @@ class LogParserActor extends Actor with ActorLogging {
         case Some(metric) =>
           sender() ! AlertingRuleCreated(compId, metricKey, rule)
           val newMonitor = create(context, rule, compId, metricKey)
-          context.become(normal(metrics, updateMonitors(monitors, newMonitor, metricKey)))
+          context.become(normal(metrics, updateMonitors(alertsByMetricKey, newMonitor, metricKey)))
       }
 
   }
@@ -55,11 +54,11 @@ class LogParserActor extends Actor with ActorLogging {
     metrics.find(_.metricKey == metricKey)
   }
 
-  private def updateMonitors(monitors: Monitors, newMonitor: Monitor, key: MetricKey): Monitors = {
+  private def updateMonitors(monitors: Map[MetricKey, List[Monitor]], newMonitor: Monitor, key: MetricKey) = {
     monitors + (key -> (newMonitor :: monitors.getOrElse(key, Nil)))
   }
 
-  private def handleSubmitLog(msg: SubmitLog, metrics: Metrics, monitors: Monitors) {
+  private def handleSubmitLog(msg: SubmitLog, metrics: Metrics, monitors: Map[MetricKey, List[Monitor]]) {
     log.debug("received {} in {}", msg, self.path)
     for {
       metric <- metrics

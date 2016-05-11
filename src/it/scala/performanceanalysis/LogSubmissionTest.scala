@@ -28,7 +28,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
 
       val componentId: String = "parsingConfiguredComponent"
       And(s"registered a component with id $componentId")
-      assert(registerComponent(componentId).getStatusCode() === Created.intValue)
+      registerComponent(componentId).getStatusCode() shouldBe Created.intValue
 
       val metricPath = s"/components/$componentId/metrics"
       val metricKey = "aKey"
@@ -36,13 +36,13 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       val data = s"""{"regex" : "$regex", "metric-key" : "$metricKey"}"""
 
       And(s"also registered a metric $data to $metricPath on the Administrator port")
-      assert(awaitAdminPostResonse(metricPath, data).getStatusCode() === Created.intValue)
+      awaitAdminPostResonse(metricPath, data).getStatusCode() shouldBe Created.intValue
 
       val monitorPath = s"/components/$componentId/metrics/$metricKey/alerting-rules"
       val alertData = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
 
       And(s"also registered a monitor $monitorPath to $alertData on the Administrator port")
-      assert(awaitAdminPostResonse(monitorPath, alertData).getStatusCode() === Created.intValue)
+      awaitAdminPostResonse(monitorPath, alertData).getStatusCode() shouldBe Created.intValue
 
       val logPath = s"/components/$componentId/logs"
       val logData = """{"logline" : "some action took 200 ms"}""" //higher than 2000 ms action kicks in
