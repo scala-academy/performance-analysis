@@ -18,7 +18,6 @@ object LogParserActor {
 
 class LogParserActor extends Actor with ActorLogging {
   this: AlertRuleActorCreator =>
-  private type Metrics = List[Metric]
   private type Monitor = ActorRef
 
   def receive: Receive = normal(Nil, Map())
@@ -49,7 +48,7 @@ class LogParserActor extends Actor with ActorLogging {
 
   }
 
-  private def findMetric(metricKey: MetricKey, metrics: Metrics):Option[Metric] = {
+  private def findMetric(metricKey: MetricKey, metrics: List[Metric]):Option[Metric] = {
     metrics.find(_.metricKey == metricKey)
   }
 
@@ -57,7 +56,7 @@ class LogParserActor extends Actor with ActorLogging {
     monitors + (key -> (newMonitor :: monitors.getOrElse(key, Nil)))
   }
 
-  private def handleSubmitLog(msg: SubmitLog, metrics: Metrics, monitors: Map[MetricKey, List[Monitor]]) {
+  private def handleSubmitLog(msg: SubmitLog, metrics: List[Metric], monitors: Map[MetricKey, List[Monitor]]) {
     log.debug("received {} in {}", msg, self.path)
     for {
       metric <- metrics
