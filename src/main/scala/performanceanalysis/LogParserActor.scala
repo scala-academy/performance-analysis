@@ -18,19 +18,19 @@ object LogParserActor {
 
 class LogParserActor extends Actor with ActorLogging {
   this: AlertRuleActorCreator =>
-  private type Monitor = ActorRef
+  private type AlertRuleActorRef = ActorRef
 
   def receive: Receive = normal(Nil, Map())
 
-  def normal(metrics: List[Metric], alertsByMetricKey: Map[MetricKey, List[Monitor]]): Receive = {
+  def normal(metrics: List[Metric], alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]]): Receive = {
     case RequestDetails =>
       log.debug("received request for details")
-      sender ! Details(metrics)
+      sender() ! Details(metrics)
 
     case metric: Metric =>
       log.debug("received post with metric {}", metric)
       context.become(normal(metric :: metrics, alertsByMetricKey))
-      sender ! MetricRegistered(metric)
+      sender() ! MetricRegistered(metric)
 
     case msg: SubmitLog =>
       handleSubmitLog(msg, metrics, alertsByMetricKey)
@@ -42,8 +42,8 @@ class LogParserActor extends Actor with ActorLogging {
         case None => sender() ! MetricNotFound(compId, metricKey)
         case Some(metric) =>
           sender() ! AlertingRuleCreated(compId, metricKey, rule)
-          val newMonitor = create(context, rule, compId, metricKey)
-          context.become(normal(metrics, updateMonitors(alertsByMetricKey, newMonitor, metricKey)))
+          val newAlertActorRef = create(context, rule, compId, metricKey)
+          context.become(normal(metrics, updateAlertsByMetricKey(alertsByMetricKey, newAlertActorRef, metricKey)))
       }
 
   }
@@ -52,19 +52,21 @@ class LogParserActor extends Actor with ActorLogging {
     metrics.find(_.metricKey == metricKey)
   }
 
-  private def updateMonitors(monitors: Map[MetricKey, List[Monitor]], newMonitor: Monitor, key: MetricKey) = {
-    monitors + (key -> (newMonitor :: monitors.getOrElse(key, Nil)))
+  private def updateAlertsByMetricKey(alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]],
+                                      newAlertRuleActorRef: AlertRuleActorRef, key: MetricKey) = {
+    alertsByMetricKey + (key -> (newAlertRuleActorRef :: alertsByMetricKey.getOrElse(key, Nil)))
   }
 
-  private def handleSubmitLog(msg: SubmitLog, metrics: List[Metric], monitors: Map[MetricKey, List[Monitor]]) {
+  private def handleSubmitLog(msg: SubmitLog, metrics: List[Metric],
+                              alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]]) {
     log.debug("received {} in {}", msg, self.path)
     for {
       metric <- metrics
       value <- parseLogLine(msg.logLine, metric)
-      monitor <- monitors(metric.metricKey)
+      alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
     } {
-      log.info("sending {} to {}", CheckRuleBreak(value), monitor.path)
-      monitor ! CheckRuleBreak(value)
+      log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
+      alertRuleActorRef ! CheckRuleBreak(value)
     }
   }
 

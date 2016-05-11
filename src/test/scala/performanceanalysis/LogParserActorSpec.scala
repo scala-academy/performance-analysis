@@ -37,7 +37,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       expectMsg(MetricRegistered(metric))
     }
 
-    def registerMonitor(key: MetricKey, rule : AlertingRule):Unit = {
+    def registerAlertingRule(key: MetricKey, rule : AlertingRule):Unit = {
       logParserActorRef ! RegisterAlertingRule("aCid", key, rule)
       expectMsg(AlertingRuleCreated("aCid", key, rule))
     }
@@ -73,12 +73,12 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     }
 
     "send message AlertingRuleCreated when alerting rule can be registered" in new TestSetupWithMetricRegistered {
-      registerMonitor(metricKey1, alertingRule("aUrl"))
+      registerAlertingRule(metricKey1, alertingRule("aUrl"))
     }
 
     "send message to AlertRuleActors when log submitted" in new TestSetupWithMetricRegistered {
-      registerMonitor(metricKey1, alertingRule("aUrlForRule1"))
-      registerMonitor(metricKey2, alertingRule("aUrlForRule2"))
+      registerAlertingRule(metricKey1, alertingRule("aUrlForRule1"))
+      registerAlertingRule(metricKey2, alertingRule("aUrlForRule2"))
 
       logParserActorRef ! SubmitLog("aCid", "some action took 2000 ms")
       alertRule1ActorProbe.expectMsg(CheckRuleBreak("2000 ms"))

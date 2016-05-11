@@ -23,13 +23,13 @@ class LogReceiverActor extends Actor with ActorLogging {
     case msg: SubmitLog =>
       handleSubmitLog(logParsers, msg)
     case RegisterNewLogParser(compId, newLogParser) =>
-      log.info(s"New LogParser created with $compId")
+      log.info("New LogParser created with {}", compId)
       handleNewLogParser(logParsers, compId, newLogParser)
   }
 
   private def handleSubmitLog(logParsers: LogParsers, msg: SubmitLog) = {
     logParsers.get(msg.componentId) match {
-      case None => sender ! LogParserNotFound(msg.componentId)
+      case None => sender() ! LogParserNotFound(msg.componentId)
       case Some(logParser) =>
         logParser ! msg // eventually log line will be parsed
         sender() ! LogSubmitted
