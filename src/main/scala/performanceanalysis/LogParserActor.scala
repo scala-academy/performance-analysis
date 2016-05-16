@@ -65,10 +65,10 @@ class LogParserActor extends Actor with ActorLogging {
       val parseResult = parseLogLine(msg.logLine, metric)
       for {
         value <- parseResult.metric
-        monitor <- monitors(metric.metricKey)
+        alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
       } {
-        log.info("sending {} to {}", CheckRuleBreak(value), monitor.path)
-        monitor ! CheckRuleBreak(value)
+        log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
+        alertRuleActorRef ! CheckRuleBreak(value)
       }
     }
   }
