@@ -1,5 +1,5 @@
-Performance analysis
-====================
+Periphas
+========
 
 Gitter chat: https://gitter.im/scala-academy/performance-analysis
 [![Join the chat at https://gitter.im/scala-academy/performance-analysis](https://badges.gitter.im/scala-academy/performance-analysis.svg)](https://gitter.im/scala-academy/performance-analysis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -17,8 +17,7 @@ Codacy grade and coverage:
 This is a project used in the "Scala and akka in practise" course.
 Goal: learn programing with Scala and Akka in a real-world scenario.
 
-What do you call a Java repository?
-A garbage collection<Java>
+Periphas is short for PERFormance AnalyticS and was a well loved king in Ancient Greece, known for his righteousness (source: https://en.wikipedia.org/wiki/Periphas_(Attic_king))
 
 Run Gatling Simulations
 =======================
@@ -29,4 +28,4 @@ To run all gatling tests
 
 To run single test
 
-`sbt gatling:testOnly <pacakge.simulation.class>`
+`sbt gatling:testOnly <package.simulation.class>`
