@@ -18,7 +18,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       val request  = http.Request(http.Method.Get, "/")
       val response = performLogReceiverRequest(request)
       whenReady(response, timeout(1 second)) { result =>
-        assert(result.getStatusCode() === 405)
+        result.getStatusCode() shouldBe 405
         Then("the response should have status code 405")
       }
     }
@@ -38,11 +38,11 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       And(s"also registered a metric $data to $metricPath on the Administrator port")
       awaitAdminPostResonse(metricPath, data).getStatusCode() shouldBe Created.intValue
 
-      val monitorPath = s"/components/$componentId/metrics/$metricKey/alerting-rules"
-      val alertData = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
+      val registerAlertRule = s"/components/$componentId/metrics/$metricKey/alerting-rules"
+      val rule = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
 
-      And(s"also registered a monitor $monitorPath to $alertData on the Administrator port")
-      awaitAdminPostResonse(monitorPath, alertData).getStatusCode() shouldBe Created.intValue
+      And(s"also registered a alerting rule $rule to $registerAlertRule on the Administrator port")
+      awaitAdminPostResonse(registerAlertRule, rule).getStatusCode() shouldBe Created.intValue
 
       val logPath = s"/components/$componentId/logs"
       val logData = """{"logline" : "some action took 200 ms"}""" //higher than 2000 ms action kicks in
@@ -50,7 +50,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       val response = logReceiverPostResponse(logPath, logData)
 
       whenReady(response, timeout(1 second)) { result =>
-        assert(result.getStatusCode() === Accepted.intValue)
+        result.getStatusCode() shouldBe Accepted.intValue
         Then("the response should have status code 202")
       }
 
