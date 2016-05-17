@@ -1,7 +1,8 @@
 package performanceanalysis
 
 import java.time.LocalDateTime
-import java.time.format.{DateTimeFormatter, DateTimeParseException, ResolverStyle}
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, DateTimeParseException, ResolverStyle}
+import java.time.temporal.ChronoField
 
 import scala.util.matching.Regex
 
@@ -19,17 +20,34 @@ class LineParser(regex: Regex) {
 
 }
 
+object ParsedLine {
+
+  val dtRegex = """\d{1,2}[ -/.]\d{1,2}[ -/.]\d{4}[ T]\d{1,2}[:.]\d{2}[.:]\d{2}(.\d{0,9})?""".r
+
+  private def formatWithFraction(pattern: String): DateTimeFormatter = new DateTimeFormatterBuilder()
+    .appendPattern(pattern)
+    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
+    .toFormatter
+    .withResolverStyle(ResolverStyle.STRICT)
+
+  private val ymdFormat = formatWithFraction("uuuu[/][-][.][ ]m[/][-][.][ ]d HH[:][.]mm[:][.]ss")
+
+  private val dmyFormat = formatWithFraction("d[/][-][.][ ]M[/][-][.][ ]uuuu HH[:][.]mm[:][.]ss")
+
+  private val mdyFormat = formatWithFraction("M[/][-][.][ ]d[/][-][.][ ]uuuu HH[:][.]mm[:][.]ss")
+
+}
+
 class ParsedLine(line: String, regex: Regex) {
 
-  private val dateFormat = DateTimeFormatter.
-    ofPattern("MM/dd/uuuu HH:mm:ss.SSS").
-    withResolverStyle(ResolverStyle.STRICT)
+  import ParsedLine._
 
   lazy val dateTime: Option[LocalDateTime] = {
-    val dateString: Option[String] = """(\d+/\d+/\d+ \d+:\d+:\d+.\d+)""".r.findFirstIn(line)
+    val dateString: Option[String] = dtRegex.findFirstIn(line)
+    println(s"***** $dateString")
     dateString.flatMap({ s =>
       try {
-        Some(LocalDateTime.parse(s, dateFormat))
+        Some(LocalDateTime.parse(s, mdyFormat))
       } catch {
         case e: DateTimeParseException => None
       }
