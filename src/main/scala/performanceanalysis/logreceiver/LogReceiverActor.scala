@@ -15,20 +15,19 @@ object LogReceiverActor {
 class LogReceiverActor extends Actor with ActorLogging {
   private type ComponentId = String
   private type LogParser = ActorRef
-  private type LogParsers = Map[ComponentId, LogParser]
 
   def receive: Receive = normal(Map())
 
-  def normal(logParsers: LogParsers): Receive = {
+  def normal(logParsersById: Map[ComponentId, LogParser]): Receive = {
     case msg: SubmitLog =>
-      handleSubmitLog(logParsers, msg)
+      handleSubmitLog(logParsersById, msg)
     case RegisterNewLogParser(compId, newLogParser) =>
       log.info("New LogParser created with {}", compId)
-      handleNewLogParser(logParsers, compId, newLogParser)
+      handleRegisterNewLogParser(logParsersById, compId, newLogParser)
   }
 
-  private def handleSubmitLog(logParsers: LogParsers, msg: SubmitLog) = {
-    logParsers.get(msg.componentId) match {
+  private def handleSubmitLog(logParsersById: Map[ComponentId, LogParser], msg: SubmitLog) = {
+    logParsersById.get(msg.componentId) match {
       case None => sender() ! LogParserNotFound(msg.componentId)
       case Some(logParser) =>
         logParser ! msg // eventually log line will be parsed
@@ -36,7 +35,8 @@ class LogReceiverActor extends Actor with ActorLogging {
     }
   }
 
-  private def handleNewLogParser(logParsers: LogParsers, compId: ComponentId, newParser: LogParser) = {
+  private def handleRegisterNewLogParser(logParsers: Map[ComponentId, LogParser],
+                                         compId: ComponentId, newParser: LogParser) = {
     val newLogParserActors = logParsers.updated(compId, newParser)
     context.become(normal(newLogParserActors))
   }
