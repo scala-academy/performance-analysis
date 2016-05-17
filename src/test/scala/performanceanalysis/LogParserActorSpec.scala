@@ -4,7 +4,7 @@ import akka.actor.{ActorContext, ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
+import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
 class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
@@ -18,10 +18,10 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
-      override def create(context: ActorContext, rule: AlertingRule, componentId: String, metricKey: String): ActorRef = {
+      override def create(context: ActorContext, rule: AlertRule, componentId: String, metricKey: String): ActorRef = {
         rule match {
-          case AlertingRule(_, RuleAction("aUrlForRule1")) => alertRule1ActorProbe.ref
-          case AlertingRule(_, RuleAction("aUrlForRule2")) => alertRule2ActorProbe.ref
+          case AlertRule(_, RuleAction("aUrlForRule1")) => alertRule1ActorProbe.ref
+          case AlertRule(_, RuleAction("aUrlForRule2")) => alertRule2ActorProbe.ref
           case _ => defaultAlertRuleActorProbe.ref
         }
       }
@@ -32,6 +32,15 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val metric = Metric("aMetricKey", "\\d+\\sms")
     logParserActorRef ! metric
     expectMsg(MetricRegistered(metric))
+  }
+
+  trait TestSetupWithAlertsRegistered extends TestSetupWithMetricRegistered {
+    val rules = List(AlertRule(Threshold("2001 ms"), RuleAction("aUrlForRule1")),
+      AlertRule(Threshold("2002 ms"), RuleAction("aUrlForRule2")))
+    for (rule <- rules) {
+      logParserActorRef ! RegisterAlertingRule("aCid", "aMetricKey", rule)
+      expectMsg(AlertingRuleCreated("aCid", "aMetricKey", rule))
+    }
   }
 
   "LogParserActor" must {
@@ -50,28 +59,34 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     }
 
     "send message MetricNotFound when no metric for given altering rule found" in new TestSetup {
-      logParserActorRef ! RegisterAlertingRule("aCid", "aMetricKey", AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      logParserActorRef ! RegisterAlertingRule("aCid", "aMetricKey", AlertRule(Threshold("2000 ms"), RuleAction("aUrl")))
       expectMsg(MetricNotFound("aCid", "aMetricKey"))
     }
 
     "send message AlertingRuleCreated when alterting rule can be registered" in new TestSetupWithMetricRegistered {
-      val rule = AlertingRule(Threshold("2000 ms"), RuleAction("aUrl"))
+      val rule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
       logParserActorRef ! RegisterAlertingRule("aCid", "aMetricKey", rule)
       expectMsg(AlertingRuleCreated("aCid", "aMetricKey", rule))
     }
 
-    "send message to AlertRuleActors when log submitted" in new TestSetupWithMetricRegistered {
-      val rules = List(AlertingRule(Threshold("2001 ms"), RuleAction("aUrlForRule1")),
-        AlertingRule(Threshold("2002 ms"), RuleAction("aUrlForRule2")))
-      for (rule <- rules) {
-        logParserActorRef ! RegisterAlertingRule("aCid", "aMetricKey", rule)
-        expectMsg(AlertingRuleCreated("aCid", "aMetricKey", rule))
-      }
+    "send MetricNotFound when requesting details of non-existing metric" in new TestSetupWithMetricRegistered {
+      logParserActorRef ! RequestAlertRules("notAMetricKey")
+      expectMsg(MetricNotFound)
+    }
 
+    "send message to AlertRuleActors when log submitted" in new TestSetupWithAlertsRegistered {
       logParserActorRef ! SubmitLogs("aCid", "some action took 2000 ms")
       alertRule1ActorProbe.expectMsg(CheckRuleBreak("2000 ms"))
       alertRule2ActorProbe.expectMsg(CheckRuleBreak("2000 ms"))
     }
-  }
 
+    "forward GetDetails messages to AlertRuleActors when requesting alert rules" in new TestSetupWithAlertsRegistered {
+      logParserActorRef ! RequestAlertRules("aMetricKey")
+
+      alertRule1ActorProbe.expectMsg(GetDetails(""))
+      alertRule2ActorProbe.expectMsg(GetDetails(""))
+
+      expectNoMsg()
+    }
+  }
 }

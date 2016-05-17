@@ -5,7 +5,7 @@ import akka.http.scaladsl.model.StatusCodes.Created
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
 import performanceanalysis.base.SpecBase
-import performanceanalysis.server.Protocol.Rules.{Action, AlertingRule, Threshold}
+import performanceanalysis.server.Protocol.Rules.{Action, AlertRule, Threshold}
 import performanceanalysis.server.Protocol._
 
 /**
@@ -60,6 +60,21 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
+    "handle a GET on /components/<known componentID>/metrics/<known metricKey>/alerting-rules" in new AdministratorWithProbe {
+      val componentId = "knownId"
+      val metricKey = "knownKey"
+      val routeTestResult = Get(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+
+      val answer = AlertRulesDetails(Set[AlertRule](AlertRule(Threshold("t"), Action("a"))))
+      probe.expectMsgPF() { case GetAlertRules(`componentId`, `metricKey`) => true }
+      probe.reply(answer)
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.OK
+//        responseAs[AlertRulesDetails] shouldBe answer
+      }
+    }
+
     "handle a POST on /components by creating a new registered componentId" in new AdministratorWithProbe() {
       val routeTestResult = Post("/components/metrics", RegisterComponent("RegisteredComponent1")) ~> routes
 
@@ -85,7 +100,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components/<component>/metrics/<mkey>/alerting-rules by creating a new alerting rule" in new AdministratorWithProbe() {
-      val rule = AlertingRule(Threshold("2000 millis"), Action("dummy-action"))
+      val rule = AlertRule(Threshold("2000 millis"), Action("dummy-action"))
       val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
 
       probe.expectMsg(RegisterAlertingRule("cid", "mkey", rule))

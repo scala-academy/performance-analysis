@@ -38,7 +38,11 @@ object Protocol {
 
   case class RequestAlertRules(metricKey: String)
 
-  case class AlertRuleDetails(alertRules: Set[Rules.AlertingRule])
+  case class AlertRuleDetails(alertRule: Rules.AlertRule)
+
+  case class AlertRulesDetails(alertRules: Set[Rules.AlertRule])
+
+  case class MetricDetails(metric: Metric, alertRules: Set[Rules.AlertRule])
 
   /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components
@@ -95,7 +99,7 @@ object Protocol {
     /**
       * Encapsulates a basic alerting rule.
       */
-    case class AlertingRule(threshold: Threshold, action: Action)
+    case class AlertRule(threshold: Threshold, action: Action)
 
     /** Defines threshold of a rule. */
     case class Threshold(max: String) {
@@ -109,12 +113,12 @@ object Protocol {
   /**
     * Used by the Administrator towards AdministratorActor to add a new alerting rule.
     */
-  case class RegisterAlertingRule(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+  case class RegisterAlertingRule(componentId: String, metricKey: String, rule: Rules.AlertRule)
 
   /**
     * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
     */
-  case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+  case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertRule)
 
   /**
     * Used by the Administrator towards AdministratorActor to delete all alerting rules
@@ -145,5 +149,7 @@ trait Protocol extends DefaultJsonProtocol {
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
-  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertingRule.apply)
+  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
+
+  implicit val alertRulesDetailsFormatter = jsonFormat1(AlertRulesDetails.apply)
 }

@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, Statu
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import performanceanalysis.server.Protocol.Rules.AlertingRule
+import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
 import performanceanalysis.server.Server
 
@@ -27,14 +27,10 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   def componentsRoute: Route = pathPrefix("components") {
     pathPrefix(Segment) { componentId =>
-      get {
-        // Handle GET of an existing component to obtain metrics only
-        complete(handleGet(administratorActor ? GetDetails(componentId)))
-      } ~ pathPrefix("metrics") {
+      pathPrefix("metrics") {
         pathEnd {
           post {
             entity(as[Metric]) { metric =>
-
               log.debug(s"Received POST on /components/$componentId with entity $metric")
               complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
             }
@@ -42,7 +38,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         } ~ pathPrefix(Segment) { metricKey =>
           path("alerting-rules") {
             post {
-              entity(as[AlertingRule]) { rule =>
+              entity(as[AlertRule]) { rule =>
                 log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
                 complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
               }
@@ -56,6 +52,9 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
             }
           }
         }
+      } ~ get {
+        // Handle GET of an existing component to obtain metrics only
+        complete(handleGet(administratorActor ? GetDetails(componentId)))
       }
     } ~
       get {
