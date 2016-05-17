@@ -33,7 +33,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       val metricPath = s"/components/$componentId/metrics"
       val metricKey = "aKey"
       val regex: String = """(\\d+ ms)"""
-      val data = s"""{"regex" : "$regex", "metric-key" : "$metricKey"}"""
+      val data = s"""{"regex" : "$regex", "metric-key" : "$metricKey", "value-type": "duration"}"""
 
       And(s"also registered a metric $data to $metricPath on the Administrator port")
       awaitAdminPostResonse(metricPath, data).getStatusCode() shouldBe Created.intValue

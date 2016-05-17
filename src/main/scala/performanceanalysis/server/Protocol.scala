@@ -2,7 +2,7 @@ package performanceanalysis.server
 
 import akka.actor.ActorRef
 import performanceanalysis.server.Protocol._
-import spray.json.DefaultJsonProtocol
+import spray.json._
 
 import scala.concurrent.duration.Duration
 
@@ -69,10 +69,12 @@ object Protocol {
     */
   case class RegisterNewLogParser(componentId: String, actor: ActorRef)
 
+  case class ValueType(aType: Any)
+
   /**
     * Used to register a metric in the LogParserActor
     */
-  case class Metric(metricKey: String, regex: String)
+  case class Metric(metricKey: String, regex: String, valueType: ValueType = ValueType(classOf[String]))
 
   /**
     * Used to register a metric in the AdministratorParserActor
@@ -118,7 +120,7 @@ object Protocol {
   /**
     * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.
     */
-  case class CheckRuleBreak(value: String)
+  case class CheckRuleBreak(value: Any)
 
   /**
     * Used by ActionAlertActor to trigger an action when a rule breaks. Handled by AlertActionActor.
@@ -127,7 +129,23 @@ object Protocol {
 }
 
 trait Protocol extends DefaultJsonProtocol {
-  implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex")
+
+  implicit object valueTypeFormat extends JsonFormat[ValueType] {
+    def read(value: JsValue): ValueType = value match {
+      case JsString("string") => ValueType(classOf[String])
+      case JsString("boolean") => ValueType(classOf[Boolean])
+      case JsString("duration") => ValueType(classOf[Duration])
+      case _ => deserializationError("Unknown value type")
+    }
+    def write(f: ValueType): JsValue = f.aType match {
+      case c if c == classOf[String] => JsString("string")
+      case c if c == classOf[Boolean] => JsString("boolean")
+      case c if c == classOf[Duration] => JsString("duration")
+      case _ => serializationError("Unknown value type")
+    }
+  }
+
+  implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex", "value-type")
   implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)

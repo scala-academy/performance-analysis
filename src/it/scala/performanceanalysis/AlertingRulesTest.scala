@@ -19,7 +19,7 @@ class AlertingRulesTest extends IntegrationTestBase with Protocol {
 
       And("""I register a metric with metric-key "a-numerical-metric" """)
       val registerMetricRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp/metrics",
-        """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric"}""")
+        """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric", "value-type": "duration"}""")
       val registerMetricResponseFuture = performAdminRequest(registerMetricRequest)
       val registerMetricResponse = Await.result(registerMetricResponseFuture)
       registerCompResponse.statusCode shouldBe 201

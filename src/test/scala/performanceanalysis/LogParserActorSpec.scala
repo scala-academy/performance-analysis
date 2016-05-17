@@ -8,6 +8,11 @@ import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
+
 class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
   def this() = this(ActorSystem("LogParserActorSpec"))
 
@@ -47,8 +52,8 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       AlertingRule(someThreshold, RuleAction(ruleAction))
     }
 
-    sendMetricAndAssertResponse(Metric(metricKey1, """(\d+ ms)""")) //good regex
-    sendMetricAndAssertResponse(Metric(metricKey2, """\d+ ms""")) //group doesn't exist, so it is bad regex
+    sendMetricAndAssertResponse(Metric(metricKey1, """(\d+ ms)""", ValueType(classOf[Duration]))) //good regex
+    sendMetricAndAssertResponse(Metric(metricKey2, """\d+ ms""", ValueType(classOf[Duration]))) //group doesn't exist, so it is bad regex
   }
 
   "LogParserActor" must {
@@ -81,9 +86,34 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       registerAlertingRule(metricKey2, alertingRule("aUrlForRule2"))
 
       logParserActorRef ! SubmitLog("aCid", "some action took 2000 ms")
-      alertRule1ActorProbe.expectMsg(CheckRuleBreak("2000 ms"))
+      alertRule1ActorProbe.expectMsg(CheckRuleBreak(2000 millis))
       //regular expression is not matching, so rule should not get message
       alertRule2ActorProbe.expectNoMsg()
+    }
+
+    "parse log with boolean metric" in new TestSetup {
+      val metric = Metric("key", "(ERROR)", ValueType(classOf[Boolean]))
+      logParserActorRef ! metric
+      expectMsg(MetricRegistered(metric))
+      logParserActorRef ! RequestDetails
+      expectMsg(Details(List(metric)))
+      logParserActorRef ! RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+
+      // submit a log with ERROR in it
+      logParserActorRef ! SubmitLog("aCid", "log line with ERROR in it")
+      defaultAlertRuleActorProbe.expectMsg(CheckRuleBreak(true))
+    }
+
+    "parse log with boolean metric when no match should not trigger a message to AlertRuleActor" in new TestSetup {
+      val metric = Metric("key", "(ERROR)", ValueType(classOf[Boolean]))
+      logParserActorRef ! metric
+      expectMsg(MetricRegistered(metric))
+      logParserActorRef ! RequestDetails
+      expectMsg(Details(List(metric)))
+      logParserActorRef ! RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      
+      logParserActorRef ! SubmitLog("aCid", "log line with info here in it")
+      defaultAlertRuleActorProbe.expectNoMsg
     }
   }
 

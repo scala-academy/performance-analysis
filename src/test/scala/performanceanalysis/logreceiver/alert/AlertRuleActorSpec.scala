@@ -6,6 +6,9 @@ import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
 
 class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
   def this() = this(ActorSystem("AlertRuleActorSpec"))
@@ -19,13 +22,13 @@ class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertRuleActor = system.actorOf(Props(new AlertRuleActor(rule, "aCid", "aMetricKey") with TestAlertActionActorCreator))
 
     "trigger an action when incoming value breaks the given rule" in {
-      testProbe.send(alertRuleActor, CheckRuleBreak("2001 ms"))
+      testProbe.send(alertRuleActor, CheckRuleBreak(2001 millis))
 
       alertActionActorProbe.expectMsg(Action("aUrl", s"Rule $rule was broken for component id aCid and metric key aMetricKey"))
     }
 
     "NOT trigger an action when incoming does not break the given rule" in {
-      testProbe.send(alertRuleActor, CheckRuleBreak("2000 ms"))
+      testProbe.send(alertRuleActor, CheckRuleBreak(2000 millis))
 
       alertActionActorProbe.expectNoMsg()
     }

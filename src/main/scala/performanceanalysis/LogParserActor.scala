@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.{AlertingRuleCreated, CheckRuleBreak, _}
+import performanceanalysis.server._
 
 import scala.util.matching.Regex
 
@@ -65,8 +66,9 @@ class LogParserActor extends Actor with ActorLogging {
       value <- parseLogLine(msg.logLine, metric)
       alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
     } {
-      log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
-      alertRuleActorRef ! CheckRuleBreak(value)
+      val msg = CheckRuleBreak(value.toType(metric.valueType))
+      log.info("sending {} to {}", msg, alertRuleActorRef.path)
+      alertRuleActorRef ! msg
     }
   }
 
@@ -74,5 +76,4 @@ class LogParserActor extends Actor with ActorLogging {
     val pattern: Regex = metric.regex.r
     pattern.findFirstMatchIn(logLine).filter(_.groupCount >= 1).map(_  group 1)
   }
-
 }
