@@ -92,12 +92,12 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     }
 
     "parse log with boolean metric" in new TestSetup {
-      val metric = Metric("key", "(ERROR)", ValueType(classOf[Boolean]))
+      val metric = Metric("key-with-error", "(ERROR)", ValueType(classOf[Boolean]))
       logParserActorRef ! metric
       expectMsg(MetricRegistered(metric))
-      logParserActorRef ! RequestDetails
-      expectMsg(Details(List(metric)))
-      logParserActorRef ! RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      val registerRule = RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      logParserActorRef ! registerRule
+      expectMsg(AlertingRuleCreated("aCid", metric.metricKey, registerRule.rule))
 
       // submit a log with ERROR in it
       logParserActorRef ! SubmitLog("aCid", "log line with ERROR in it")
@@ -105,14 +105,14 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     }
 
     "parse log with boolean metric when no match should not trigger a message to AlertRuleActor" in new TestSetup {
-      val metric = Metric("key", "(ERROR)", ValueType(classOf[Boolean]))
+      val metric = Metric("key-with-no-error", "(ERROR)", ValueType(classOf[Boolean]))
       logParserActorRef ! metric
       expectMsg(MetricRegistered(metric))
-      logParserActorRef ! RequestDetails
-      expectMsg(Details(List(metric)))
-      logParserActorRef ! RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      val registerRule = RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      logParserActorRef ! registerRule
+      expectMsg(AlertingRuleCreated("aCid", metric.metricKey, registerRule.rule))
 
-      logParserActorRef ! SubmitLog("aCid", "log line with info here in it")
+      logParserActorRef ! SubmitLog("aCid", "log line with INFO in it")
       defaultAlertRuleActorProbe.expectNoMsg
     }
   }

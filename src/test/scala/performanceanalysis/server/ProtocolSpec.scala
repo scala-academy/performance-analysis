@@ -37,7 +37,7 @@ class ProtocolSpec extends SpecBase {
     }
 
     "fail to serialize to json when unknown value type" in new Protocol {
-      class BrandNewType {}
+      class BrandNewType
       val metric = Metric("mk", "rx", ValueType(classOf[BrandNewType]))
       intercept[SerializationException] {
         metric.toJson
