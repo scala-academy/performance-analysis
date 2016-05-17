@@ -44,7 +44,6 @@ class ParsedLine(line: String, regex: Regex) {
 
   lazy val dateTime: Option[LocalDateTime] = {
     val dateString: Option[String] = dtRegex.findFirstIn(line)
-    println(s"***** $dateString")
     dateString.flatMap({ s =>
       try {
         Some(LocalDateTime.parse(s, mdyFormat))
