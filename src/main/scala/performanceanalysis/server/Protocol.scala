@@ -69,6 +69,9 @@ object Protocol {
     */
   case class RegisterNewLogParser(componentId: String, actor: ActorRef)
 
+  /**
+    * The value type of a Metric
+    */
   case class ValueType(aType: Any)
 
   /**

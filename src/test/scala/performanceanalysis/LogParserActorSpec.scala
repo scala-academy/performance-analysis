@@ -111,7 +111,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       logParserActorRef ! RequestDetails
       expectMsg(Details(List(metric)))
       logParserActorRef ! RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
-      
+
       logParserActorRef ! SubmitLog("aCid", "log line with info here in it")
       defaultAlertRuleActorProbe.expectNoMsg
     }
