@@ -1,6 +1,6 @@
 package performanceanalysis.administrator
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
 import akka.http.scaladsl.model.StatusCodes.Created
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
@@ -18,7 +18,13 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     val probe = TestProbe()
 
     override protected val administratorActor = probe.ref
+  }
 
+  trait TestConstants {
+    val knownId = "knownId"
+    val unknownId = "unknownId"
+    val knownKey = "knownKey"
+    val unknownKey = "unknownKey"
   }
 
   class TestAdministrator()
@@ -60,54 +66,47 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a GET on /components/<known componentID>/metrics/<known metricKey>/alerting-rules" in new AdministratorWithProbe {
-      val componentId = "knownId"
-      val metricKey = "knownKey"
-      val routeTestResult = Get(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+    "handle a GET on /components/<known componentID>/metrics/<known metricKey>/alerting-rules" in new AdministratorWithProbe with TestConstants {
+      val routeTestResult = Get(s"/components/$knownId/metrics/$knownKey/alerting-rules") ~> routes
 
       val answer = AlertRulesDetails(Set[AlertRule](AlertRule(Threshold("t"), Action("a"))))
-      probe.expectMsgPF() { case GetAlertRules(`componentId`, `metricKey`) => true }
+      probe.expectMsg(GetAlertRules(knownId, knownKey))
       probe.reply(answer)
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.OK
-//        responseAs[AlertRulesDetails] shouldBe answer
+        responseAs[AlertRulesDetails] shouldBe answer
       }
     }
 
-    "handle a DELETE on /components/<known componentID>/metrics/<known metricKey>/alerting-rules by sending delete message" in new AdministratorWithProbe {
-      val componentId = "knownId"
-      val metricKey = "knownKey"
-      val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+    "handle a DELETE on /components/<known componentID>/metrics/<known metricKey>/alerting-rules by sending delete message" in
+        new AdministratorWithProbe with TestConstants {
+      val routeTestResult = Delete(s"/components/$knownId/metrics/$knownKey/alerting-rules") ~> routes
 
-      probe.expectMsgPF() { case DeleteAllAlertingRules(`componentId`, `metricKey`) => true }
-      probe.reply(AlertRulesDeleted(componentId))
+      probe.expectMsg(DeleteAllAlertingRules(knownId, knownKey))
+      probe.reply(AlertRulesDeleted(knownId))
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.NoContent
       }
     }
 
-    "handle a DELETE on a non-existing metric by sending 404" in new AdministratorWithProbe {
-      val componentId = "knownId"
-      val metricKey = "unknownKey"
-      val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+    "handle a DELETE on a non-existing metric by sending 404" in new AdministratorWithProbe with TestConstants {
+      val routeTestResult = Delete(s"/components/$knownId/metrics/$unknownKey/alerting-rules") ~> routes
 
-      probe.expectMsgPF() { case DeleteAllAlertingRules(`componentId`, `metricKey`) => true }
-      probe.reply(MetricNotFound(componentId, metricKey))
+      probe.expectMsg(DeleteAllAlertingRules(knownId, unknownKey))
+      probe.reply(MetricNotFound(knownId, unknownKey))
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.NotFound
       }
     }
 
-    "handle a DELETE on a metric with no alerts by sending 203" in new AdministratorWithProbe {
-      val componentId = "knownId"
-      val metricKey = "knownKey"
-      val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+    "handle a DELETE on a metric with no alerts by sending 203" in new AdministratorWithProbe with TestConstants {
+      val routeTestResult = Delete(s"/components/$knownId/metrics/$knownKey/alerting-rules") ~> routes
 
-      probe.expectMsgPF() { case DeleteAllAlertingRules(`componentId`, `metricKey`) => true }
-      probe.reply(NoAlertsFound(componentId, metricKey))
+      probe.expectMsg(DeleteAllAlertingRules(knownId, knownKey))
+      probe.reply(NoAlertsFound(knownId, knownKey))
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.NoContent
@@ -115,10 +114,11 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components by creating a new registered componentId" in new AdministratorWithProbe() {
-      val routeTestResult = Post("/components/metrics", RegisterComponent("RegisteredComponent1")) ~> routes
+      val componentId = "RegisteredComponent1"
+      val routeTestResult = Post("/components/metrics", RegisterComponent(componentId)) ~> routes
 
-      probe.expectMsg(RegisterComponent("RegisteredComponent1"))
-      probe.reply(LogParserCreated("RegisteredComponent1"))
+      probe.expectMsg(RegisterComponent(componentId))
+      probe.reply(LogParserCreated(componentId))
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.Created
@@ -151,5 +151,3 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     }
   }
 }
-
-
