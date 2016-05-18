@@ -22,21 +22,21 @@ class AlertingRulesTest extends IntegrationTestBase with Protocol {
         """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric", "value-type": "duration"}""")
       val registerMetricResponseFuture = performAdminRequest(registerMetricRequest)
       val registerMetricResponse = Await.result(registerMetricResponseFuture)
-      registerCompResponse.statusCode shouldBe 201
+      registerMetricResponse.statusCode shouldBe 201
 
       val alertPayload = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
+      val pathToAlerts = "/components/logsObtainableComp/metrics/a-numerical-metric/alerting-rules"
 
-      When("""I do a POST to /components/logsObtainableComp/metrics/a-numerical-metric/alerting-rules" """)
-      val registerAlertRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp/metrics/a-numerical-metric/alerting-rules",
-        alertPayload)
+      When(s"""I do a POST to $pathToAlerts """)
+      val registerAlertRequest = buildPostRequest(adminRequestHost, pathToAlerts, alertPayload)
       val registerAlertResponseFuture = performAdminRequest(registerAlertRequest)
       val registerAlertResponse = Await.result(registerAlertResponseFuture)
       registerAlertResponse.statusCode shouldBe 201
 
 
-      When("""When I do a POST to /components/logsObtainableComp/metrics/unknown-metric-key/alerting-rules" """)
-      val registerAlertToFailRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp/metrics/unknown-metric-key/alerting-rules",
-        alertPayload)
+      val pathToAlertsInvalidMetric = "/components/logsObtainableComp/metrics/unknown-metric-key/alerting-rules"
+      When(s"""When I do a POST to $pathToAlertsInvalidMetric """)
+      val registerAlertToFailRequest = buildPostRequest(adminRequestHost, pathToAlertsInvalidMetric, alertPayload)
       val registerAlertToFailResponseFuture = performAdminRequest(registerAlertToFailRequest)
       val registerAlertToFailResponse = Await.result(registerAlertToFailResponseFuture)
       registerAlertToFailResponse.statusCode shouldBe 404

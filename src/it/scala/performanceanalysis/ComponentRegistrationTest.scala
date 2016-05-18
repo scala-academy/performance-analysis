@@ -39,11 +39,10 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       And("""I registered a component with id "parsConfigComp"""")
       registerComponent("parsConfigComp")
 
-      When(
-        """I do a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric", "value-type": "string"}
-          |to /components/parsConfigComp/metrics on the Administrator port""".stripMargin)
       val path = "/components/parsConfigComp/metrics"
       val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric", "value-type": "string"}"""
+      When(s"""I do a POST with $data to $path on the Administrator port""")
+
       val parseResponse = awaitAdminPostResonse(path, data)
 
       Then("""the response should have statuscode 201""")
@@ -57,11 +56,9 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       And("""I registered a component with id "parsConfigComp"""")
       registerComponent("parsConfigComp2")
 
-      When(
-        """And I did a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric", "value-type": "string"}
-          |to /components/parsConfigComp2/metrics on the Administrator port""".stripMargin)
       val path = "/components/parsConfigComp2/metrics"
       val data = """{"regex" : "+d", "metric-key" : "a-numerical-metric", "value-type": "string"}"""
+      When(s"""And I did a POST with $data to $path on the Administrator port""")
       awaitAdminPostResonse(path, data)
 
       When("I do a GET to /components/parsConfigComp2/metrics")
@@ -70,7 +67,7 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       Then("""the response should have statuscode 200""")
       response.statusCode shouldBe 200
 
-      And("""And the content should contain {"regex" : "+d", "metric-key" : "a-numerical-metric", "value-type": "string"}""")
+      And(s"""And the content should contain $data""")
       val result = response.contentString.parseJson.convertTo[Map[String, List[Map[String, String]]]]
       assert(result("metrics").contains(Map("regex" -> "+d", "metric-key" -> "a-numerical-metric", "value-type" -> "string")))
     }
