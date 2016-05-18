@@ -1,7 +1,7 @@
 package performanceanalysis.logreceiver
 
 import akka.actor.ActorRef
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.StatusCodes.{Accepted, MethodNotAllowed, NotFound, OK}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
@@ -20,13 +20,13 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
 
     "handle a GET on / response with status code 405" in new LogReceiver {
       Get() ~> Route.seal(routes) ~> check {
-        status === StatusCodes.MethodNotAllowed
+        status shouldBe MethodNotAllowed
       }
     }
 
     "handle a GET on /components response with status code 200" in new LogReceiver {
       Get("/components") ~> Route.seal(routes) ~> check {
-        status shouldBe StatusCodes.OK
+        status shouldBe OK
       }
     }
 
@@ -37,7 +37,7 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
       probe.reply(LogSubmitted)
 
       results ~> check {
-        response.status shouldBe StatusCodes.Accepted
+        response.status shouldBe Accepted
       }
     }
 
@@ -48,7 +48,7 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
       probe.reply(LogParserNotFound(componentId))
 
       testResult ~> check {
-        response.status shouldBe StatusCodes.NotFound
+        response.status shouldBe NotFound
       }
     }
   }
