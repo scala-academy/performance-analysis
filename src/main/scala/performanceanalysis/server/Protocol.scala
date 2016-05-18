@@ -1,6 +1,7 @@
 package performanceanalysis.server
 
 import akka.actor.ActorRef
+import performanceanalysis.server.InterActorMessage.Details
 import performanceanalysis.server.Protocol._
 import spray.json.DefaultJsonProtocol
 
@@ -34,6 +35,11 @@ object Protocol {
     */
   case class GetDetails(componentId: String)
 
+  /*
+   * Used by Administrator to request logs submitted to a component
+   */
+  case class GetLogs(componendId: String)
+
   /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components
     */
@@ -53,11 +59,6 @@ object Protocol {
     * Used by AdministratorActor towards LogParserActor to request its details
     */
   case object RequestDetails
-
-  /**
-    * Used by LogParserActor towards AdministratorActor to return its details
-    */
-  case class Details(metrics: List[Metric])
 
   /**
     * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
@@ -110,22 +111,14 @@ object Protocol {
     */
   case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertingRule)
 
-  /**
-    * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.
-    */
-  case class CheckRuleBreak(value: String)
 
-  /**
-    * Used by ActionAlertActor to trigger an action when a rule breaks. Handled by AlertActionActor.
-    */
-  case class Action(url: String, message: String)
 }
 
 trait Protocol extends DefaultJsonProtocol {
   implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex")
-  implicit val detailsFormatter = jsonFormat1(Details.apply)
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
+  implicit val detailsFormatter = jsonFormat1(Details.apply)
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)

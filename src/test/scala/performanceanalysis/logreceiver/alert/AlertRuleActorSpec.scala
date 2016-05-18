@@ -3,6 +3,7 @@ package performanceanalysis.logreceiver.alert
 import akka.actor.{ActorContext, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
+import performanceanalysis.server.InterActorMessage.{Action, CheckRuleBreak}
 import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
