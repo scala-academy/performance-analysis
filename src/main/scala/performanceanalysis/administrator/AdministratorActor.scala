@@ -40,13 +40,13 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
         // Notify LogReceiver of new actor
         logReceiverActor ! RegisterNewLogParser(componentId, newActor)
         // Update actor state
-        log.debug(s"Created new component $componentId")
+        log.debug("Created new component {}", componentId)
         val newLogParserActors = logParserActors.updated(componentId, newActor)
         context.become(normal(newLogParserActors))
         // Respond to sender
         sender ! LogParserCreated(componentId)
       case Some(ref) =>
-        log.debug(s"Actor with component $componentId already existed")
+        log.debug("Actor with component {} already existed", componentId)
         sender ! LogParserExisted(componentId)
     }
   }
@@ -64,21 +64,21 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
 
   private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
     routeToLogParser(logParserActors, componentId, sender) { ref =>
-      log.debug(s"Requesting details from ${ref.path}")
+      log.debug("Requesting details from {}", ref.path)
       (ref ? RequestDetails) pipeTo sender
     }
   }
 
   private def handleRegisterMetric(logParserActors: Map[String, ActorRef], componentId: String, metric: Metric, sender: ActorRef) = {
     routeToLogParser(logParserActors, componentId, sender) { ref =>
-        log.debug(s"Sending metric registration to ${ref.path}")
+        log.debug("Sending metric registration to {}", ref.path)
         (ref ? metric) pipeTo sender
     }
   }
 
   private def handleRegisterAlertingRule(logParserActors: Map[String, ActorRef], msg: RegisterAlertingRule) = {
     routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
-      log.debug(s"Sending new alerting rule to ${ref.path}")
+      log.debug("Sending new alerting rule to {}", ref.path)
       (ref ? msg) pipeTo sender()
     }
   }
