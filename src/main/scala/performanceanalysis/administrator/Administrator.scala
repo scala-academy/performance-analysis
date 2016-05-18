@@ -25,7 +25,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
-  def componentsRoute: Route = pathPrefix("components") {
+  override protected def componentsRoute: Route = pathPrefix("components") {
     pathPrefix(Segment) { componentId =>
       pathPrefix("metrics") {
         pathEnd {
@@ -40,7 +40,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
             post {
               entity(as[AlertRule]) { rule =>
                 log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
-                complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
+                complete(handlePost(administratorActor ? RegisterAlertRule(componentId, metricKey, rule)))
               }
             } ~ get {
               // Handle GET of an existing component
@@ -70,8 +70,6 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       }
   }
 
-  override protected def routes: Route = componentsRoute
-
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case LogParserCreated(componentId) =>
@@ -80,7 +78,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         ???
       case MetricRegistered(metric) =>
         Future(HttpResponse(status = Created))
-      case msg:AlertingRuleCreated =>
+      case msg:AlertRuleCreated =>
         Future(HttpResponse(status = Created))
       case msg: MetricNotFound =>
         Future(HttpResponse(status = NotFound))

@@ -94,10 +94,10 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
       val rule = AlertRule(Threshold("2000 millis"), RuleAction("dummy-action"))
       val metricKey = "mkey"
-      testProbe.send(adminActor, RegisterAlertingRule(testComponentId, `metricKey`, rule))
-      componentTestProbe.expectMsgPF() {case RegisterAlertingRule(`testComponentId`, `metricKey`, `rule`) => true}
-      componentTestProbe.reply(AlertingRuleCreated(`testComponentId`, `metricKey`, `rule`))
-      testProbe.expectMsgPF() { case AlertingRuleCreated(`testComponentId`, `metricKey`, `rule`) => true}
+      testProbe.send(adminActor, RegisterAlertRule(testComponentId, `metricKey`, rule))
+      componentTestProbe.expectMsgPF() {case RegisterAlertRule(`testComponentId`, `metricKey`, `rule`) => true}
+      componentTestProbe.reply(AlertRuleCreated(`testComponentId`, `metricKey`, `rule`))
+      testProbe.expectMsgPF() { case AlertRuleCreated(`testComponentId`, `metricKey`, `rule`) => true}
     }
 
     "delete all alert rules and forward result to requester" in {
@@ -108,10 +108,10 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       
       val rule = AlertRule(Threshold("2000 millis"), RuleAction("dummy-action"))
       val metricKey = "mkey"
-      testProbe.send(adminActor, RegisterAlertingRule(componentId, `metricKey`, rule))
-      componentTestProbe.expectMsgPF() {case RegisterAlertingRule(`componentId`, `metricKey`, `rule`) => true}
-      componentTestProbe.reply(AlertingRuleCreated(componentId, `metricKey`, `rule`))
-      testProbe.expectMsgPF() { case AlertingRuleCreated(`componentId`, `metricKey`, `rule`) => true}
+      testProbe.send(adminActor, RegisterAlertRule(componentId, `metricKey`, rule))
+      componentTestProbe.expectMsgPF() {case RegisterAlertRule(`componentId`, `metricKey`, `rule`) => true}
+      componentTestProbe.reply(AlertRuleCreated(componentId, `metricKey`, `rule`))
+      testProbe.expectMsgPF() { case AlertRuleCreated(`componentId`, `metricKey`, `rule`) => true}
 
       testProbe.send(adminActor, DeleteAllAlertingRules(componentId, metricKey))
       componentTestProbe.expectMsgPF() {case DeleteAllAlertingRules(`componentId`, `metricKey`) => true}

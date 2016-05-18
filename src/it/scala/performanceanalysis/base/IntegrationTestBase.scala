@@ -90,4 +90,14 @@ trait IntegrationTestBase
     val request = buildDeleteRequest(adminRequestHost, path)
     awaitResponse(adminClient, request)
   }
+
+  def logReceiverPostResponse(path: String, data: String): Future[Response] = {
+    val request = buildPostRequest(logReceiverRequestHost, path, data)
+    logReceiverClient(request)
+  }
+
+  def registerComponent(componentId: String): Response = {
+    val data = s"""{"componentId" : "$componentId"}"""
+    awaitAdminPostResponse("/components", data)
+  }
 }

@@ -31,20 +31,14 @@ libraryDependencies ++= {
 
 def isPerfTest(name: String): Boolean = name endsWith "Simulation"
 
-lazy val baseDir: String = s"${System.getProperty("user.dir")}"
-lazy val gatlingScalaSource: String = s"$baseDir/src/perf/scala"
-lazy val gatlingResource: String = s"$baseDir/src/perf/scala"
-lazy val gatlingTarget: String = s"$baseDir/target/scala-2.11/gatling-classes"
-
-
 lazy val root = project.in(file("."))
   .configs(Gatling)
   .configs(IntegrationTest)
   .settings(GatlingPlugin.gatlingSettings: _*)
-  .settings(scalaSource in Gatling := new File(gatlingScalaSource))
-  .settings(resourceDirectory in Gatling := new File(gatlingScalaSource))
+  .settings(scalaSource in Gatling := new File(sourceDirectory.value, "perf/scala"))
+  .settings(resourceDirectory in Gatling := new File(sourceDirectory.value, "perf/resources"))
   .settings(testOptions in Gatling := Seq(Tests.Filter(isPerfTest(_))))
-  .settings(fullClasspath in Gatling += new File(s"$gatlingTarget"))
+  .settings(fullClasspath in Gatling += new File(crossTarget.value, "gatling-classes"))
 
 Defaults.itSettings
 //scalariformSettings
