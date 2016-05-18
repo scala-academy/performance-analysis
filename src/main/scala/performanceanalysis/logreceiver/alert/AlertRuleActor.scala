@@ -2,7 +2,7 @@ package performanceanalysis.logreceiver.alert
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.server.Protocol.Rules.AlertingRule
-import performanceanalysis.server.Protocol.{Action, CheckRuleBreak}
+import performanceanalysis.server.Protocol.{AlertRuleViolated, CheckRuleBreak}
 
 import scala.concurrent.duration._
 
@@ -21,7 +21,7 @@ class AlertRuleActor(alertingRule: AlertingRule, componentId: String, metricKey:
   override def receive: Receive = {
     case msg: CheckRuleBreak if doesBreakRule(msg.value) =>
       log.info(s"Rule $alertingRule is broken for $componentId/$metricKey")
-      actionActor ! Action(alertingRule.action.url,
+      actionActor ! AlertRuleViolated(alertingRule.action.url,
       s"Rule $alertingRule was broken for component id $componentId and metric key $metricKey")
   }
 
