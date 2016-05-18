@@ -13,28 +13,31 @@ object LogReceiverActor {
 }
 
 class LogReceiverActor extends Actor with ActorLogging {
+  private type ComponentId = String
+  private type LogParser = ActorRef
 
-  def receive: Receive = normal(Map.empty[String, ActorRef])
+  def receive: Receive = normal(Map())
 
-  def normal(logParserActors: Map[String, ActorRef]): Receive = {
-    case SubmitLogs(componentId, logs) =>
-      handleSubmitLogs(logParserActors, componentId, logs)
-    case RegisterNewLogParser(componentName, newLogParser) =>
-      handleNewLogParser(logParserActors, componentName, newLogParser)
+  def normal(logParsersById: Map[ComponentId, LogParser]): Receive = {
+    case msg: SubmitLog =>
+      handleSubmitLog(logParsersById, msg)
+    case RegisterNewLogParser(compId, newLogParser) =>
+      log.info("New LogParser created with {}", compId)
+      handleRegisterNewLogParser(logParsersById, compId, newLogParser)
   }
 
-  private def handleSubmitLogs(logParserActors: Map[String, ActorRef], componentId: String, logs: String) = {
-    logParserActors.get(componentId) match {
-      case None => sender ! LogParserNotFound(componentId)
-      case Some(actorRef) =>
-        actorRef ! SubmitLogs(componentId, logs)
-        sender() ! "OK"
-
+  private def handleSubmitLog(logParsersById: Map[ComponentId, LogParser], msg: SubmitLog) = {
+    logParsersById.get(msg.componentId) match {
+      case None => sender() ! LogParserNotFound(msg.componentId)
+      case Some(logParser) =>
+        logParser ! msg // eventually log line will be parsed
+        sender() ! LogSubmitted
     }
   }
 
-  private def handleNewLogParser(logParserActors: Map[String, ActorRef], componentName: String, newLogParser: ActorRef) = {
-    val newLogParserActors = logParserActors.updated(componentName, newLogParser)
+  private def handleRegisterNewLogParser(logParsers: Map[ComponentId, LogParser],
+                                         compId: ComponentId, newParser: LogParser) = {
+    val newLogParserActors = logParsers.updated(compId, newParser)
     context.become(normal(newLogParserActors))
   }
 }
