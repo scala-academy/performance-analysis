@@ -75,7 +75,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
-    "handle a DELETE on /components/<known componentID>/metrics/<known metricKey>/alerting-rules" in new AdministratorWithProbe {
+    "handle a DELETE on /components/<known componentID>/metrics/<known metricKey>/alerting-rules by sending delete message" in new AdministratorWithProbe {
       val componentId = "knownId"
       val metricKey = "knownKey"
       val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
@@ -85,6 +85,19 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.NoContent
+      }
+    }
+
+    "handle a DELETE on a non-existing metric by sending 404" in new AdministratorWithProbe {
+      val componentId = "knownId"
+      val metricKey = "unknownKey"
+      val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+
+      probe.expectMsgPF() { case DeleteAllAlertingRules(`componentId`, `metricKey`) => true }
+      probe.reply(MetricNotFound(componentId, metricKey))
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.NotFound
       }
     }
 

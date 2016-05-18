@@ -76,7 +76,7 @@ class LogParserActor extends Actor with ActorLogging {
 
     alertsByMetric.get(msg.metricKey) match {
       case None =>
-        sender() ! AlertRulesDeleted(msg.componentId)
+        sender() ! MetricNotFound(msg.componentId, msg.metricKey)
       case Some(ruleList) =>
         for (ruleActor <- ruleList) {
           context.stop(ruleActor)

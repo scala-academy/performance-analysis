@@ -89,6 +89,11 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       expectNoMsg()
     }
 
+    "reply MetricNotFound when deleting alert rules of a non-existing metric" in new TestSetupWithAlertsRegistered {
+      logParserActorRef ! DeleteAllAlertingRules("aCid", "notAMetricKey")
+      expectMsg(MetricNotFound("aCid", "notAMetricKey"))
+    }
+
     "handle deletion of all alert rules of a metric" in new TestSetupWithAlertsRegistered {
       val probe = TestProbe()
 
