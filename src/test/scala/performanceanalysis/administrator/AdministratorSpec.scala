@@ -75,6 +75,19 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
+    "handle a DELETE on /components/<known componentID>/metrics/<known metricKey>/alerting-rules" in new AdministratorWithProbe {
+      val componentId = "knownId"
+      val metricKey = "knownKey"
+      val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+
+      probe.expectMsgPF() { case DeleteAllAlertingRules(`componentId`, `metricKey`) => true }
+      probe.reply(AlertRulesDeleted(componentId))
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.NoContent
+      }
+    }
+
     "handle a POST on /components by creating a new registered componentId" in new AdministratorWithProbe() {
       val routeTestResult = Post("/components/metrics", RegisterComponent("RegisteredComponent1")) ~> routes
 

@@ -22,12 +22,15 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       ruleActor.expectMsg(GetDetails(""))
     }
 
-    "send the result back when all ruleActors have replied" in {
+    "send the result back and stop itself when all ruleActors have replied" in {
       val senderProbe = TestProbe()
       val ruleActorProbe1 = TestProbe()
       val ruleActorProbe2 = TestProbe()
       val rules = List[ActorRef](ruleActorProbe1.testActor, ruleActorProbe2.testActor)
-      TestActorRef(new GetAlertsActor(rules, senderProbe.testActor))
+
+      val ref = TestActorRef(new GetAlertsActor(rules, senderProbe.testActor))
+
+      senderProbe.watch(ref)
 
       val alertRule1 = AlertRule(Threshold("max"), Protocol.Rules.Action("url1"))
       ruleActorProbe1.expectMsg(GetDetails(""))
@@ -40,6 +43,8 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       ruleActorProbe2.reply(AlertRuleDetails(alertRule2))
 
       senderProbe.expectMsg(AlertRulesDetails(Set[AlertRule](alertRule1, alertRule2)))
+
+      senderProbe.expectTerminated(ref)
     }
   }
 }

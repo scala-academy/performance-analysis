@@ -23,7 +23,7 @@ class AlertRuleActor(alertingRule: AlertRule, componentId: String, metricKey: St
       log.info(s"Rule $alertingRule is broken for $componentId/$metricKey")
       actionActor ! Action(alertingRule.action.url,
       s"Rule $alertingRule was broken for component id $componentId and metric key $metricKey")
-    case GetDetails =>
+    case GetDetails(_) =>
       sender() ! AlertRuleDetails(alertingRule)
   }
 

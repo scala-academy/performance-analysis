@@ -88,5 +88,19 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
 
       expectNoMsg()
     }
+
+    "handle deletion of all alert rules of a metric" in new TestSetupWithAlertsRegistered {
+      val probe = TestProbe()
+
+      probe.watch(alertRule1ActorProbe.ref)
+      probe.watch(alertRule2ActorProbe.ref)
+
+      logParserActorRef ! DeleteAllAlertingRules("aCid", "aMetricKey")
+
+      expectMsg(AlertRulesDeleted("aCid"))
+
+      probe.expectTerminated(alertRule2ActorProbe.ref)
+      probe.expectTerminated(alertRule1ActorProbe.ref)
+    }
   }
 }

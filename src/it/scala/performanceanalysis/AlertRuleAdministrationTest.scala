@@ -1,72 +1,89 @@
 package performanceanalysis
 
 
+import com.twitter.util.Await
 import performanceanalysis.base.IntegrationTestBase
-import spray.json._
+import performanceanalysis.server.Protocol
 
 /**
   * Created by steven on 20-4-16.
   */
-class AlertRuleAdministrationTest extends IntegrationTestBase {
+class AlertRuleAdministrationTest extends IntegrationTestBase with Protocol {
 
   feature("Alert rules") {
     scenario("Obtaining alert rule details") {
-      Given("the server is running")
+      Given("le server is running")
 
-      val component = "logObtainableComp4"
-      val metricKey = "a-numerical-metric"
-      And(s"I registered component $component with a metric with metric-key $metricKey")
-      val registerCompResponse = awaitAdminPostResponse("/components", s"""{"componentId" : "$component"}""")
+      And("""I registered component "logsObtainableComp" with a metric with metric-key "a-numerical-metric" """)
+      val registerCompRequest = buildPostRequest(adminRequestHost, "/components", """{"componentId" : "logsObtainableComp"}""")
+      val registerCompResponseFuture = performAdminRequest(registerCompRequest)
+      val registerCompResponse = Await.result(registerCompResponseFuture)
+
       registerCompResponse.statusCode shouldBe 201
 
-      val metricPayload = """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric"}"""
-      val registerMetricResponse = awaitAdminPostResponse(s"/components/$component/metrics", metricPayload)
+      And("""I register a metric with metric-key "a-numerical-metric" """)
+      val registerMetricRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp/metrics",
+        """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric"}""")
+      val registerMetricResponseFuture = performAdminRequest(registerMetricRequest)
+      val registerMetricResponse = Await.result(registerMetricResponseFuture)
       registerMetricResponse.statusCode shouldBe 201
 
-      val alertPayload = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
-      val path = s"/components/$component/metrics/a-numerical-metric/alerting-rules"
-      And(s"an alerting rule has been registered to $path with payload $alertPayload")
-      val registerAlertResponse = awaitAdminPostResponse(path, alertPayload)
+      val alertPayload = "{\"threshold\": {\"max\": \"2000 ms\"}, \"action\": {\"url\": \"dummy-action\"}}"
+
+      And("I registered an AlertRule")
+      val registerAlertRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp/metrics/a-numerical-metric/alerting-rules",
+        alertPayload)
+      val registerAlertResponseFuture = performAdminRequest(registerAlertRequest)
+      val registerAlertResponse = Await.result(registerAlertResponseFuture)
       registerAlertResponse.statusCode shouldBe 201
 
-      When(s"I do a GET to $path")
-      val getAlertRuleResponse = awaitAdminGetResponse(path)
-
-      Then("the result should have statuscode 200")
+      When("I do a GET on the path")
+      val getAlertRuleResponse = awaitAdminGetResponse("/components/logsObtainableComp/metrics/a-numerical-metric/alerting-rules")
       getAlertRuleResponse.statusCode shouldBe 200
 
-      And(s"the content should contain $alertPayload")
-      getAlertRuleResponse.contentString.parseJson shouldBe alertPayload.parseJson
     }
 
     scenario("Alert rule deletion") {
       Given("the server is running")
 
-      val component = "logObtainableComp2"
-      val metricKey = "a-numerical-metric"
-      And(s"I registered component $component with a metric with metric-key $metricKey")
-      val registerCompResponse = awaitAdminPostResponse("/components", s"""{"componentId" : "$component"}""")
+
+      And("""I registered component "logsObtainableComp" with a metric with metric-key "a-numerical-metric" """)
+      val registerCompRequest = buildPostRequest(adminRequestHost, "/components", """{"componentId" : "logsObtainableComp2"}""")
+      val registerCompResponseFuture = performAdminRequest(registerCompRequest)
+      val registerCompResponse = Await.result(registerCompResponseFuture)
+
       registerCompResponse.statusCode shouldBe 201
 
-      val metricPayload = """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric"}"""
-      val registerMetricResponse = awaitAdminPostResponse(s"/components/$component/metrics", metricPayload)
+      And("""I register a metric with metric-key "a-numerical-metric" """)
+      val registerMetricRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp2/metrics",
+        """{"regex" : "\\d+\\sms", "metric-key" : "a-numerical-metric"}""")
+      val registerMetricResponseFuture = performAdminRequest(registerMetricRequest)
+      val registerMetricResponse = Await.result(registerMetricResponseFuture)
       registerMetricResponse.statusCode shouldBe 201
 
-      val alertPayload = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
-      val path = s"/components/$component/metrics/a-numerical-metric/alerting-rules"
-      And(s"an alerting rule has been registered to $path with payload $alertPayload")
-      val registerAlertResponse = awaitAdminPostResponse(path, alertPayload)
+      val alertPayload = "{\"threshold\": {\"max\": \"2000 ms\"}, \"action\": {\"url\": \"dummy-action\"}}"
+
+      And("I registered an AlertRule")
+      val registerAlertRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp2/metrics/a-numerical-metric/alerting-rules",
+        alertPayload)
+      val registerAlertResponseFuture = performAdminRequest(registerAlertRequest)
+      val registerAlertResponse = Await.result(registerAlertResponseFuture)
       registerAlertResponse.statusCode shouldBe 201
 
-      When(s"I do a DELETE to $path")
-      val deleteAlertRuleResponse = awaitAdminDeleteResponse(path)
+      When(s"I do a DELETE to /components/logsObtainableComp2/metrics/a-numerical-metric/alerting-rules")
+      val deleteRequest = buildDeleteRequest(adminRequestHost, "/components/logsObtainableComp2/metrics/a-numerical-metric/alerting-rules")
+      val deleteResponseFuture = performAdminRequest(deleteRequest)
+      val deleteAlertRuleResponse = Await.result(deleteResponseFuture)
 
       Then("the result should have statuscode 204")
       deleteAlertRuleResponse.statusCode shouldBe 204
 
-      And(s"a GET to $path should return statuscode 404")
-      val getAlertRuleResponse = awaitAdminGetResponse(path)
-      getAlertRuleResponse.statusCode shouldBe 404
+      And(s"a GET to /components/logsObtainableComp2/metrics/a-numerical-metric/alerting-rules should return statuscode 404")
+      val getAlertsRequest = buildGetRequest(adminRequestHost, "/components/logsObtainableComp2/metrics/a-numerical-metric/alerting-rules")
+      val getAlertsResponseFuture = performAdminRequest(getAlertsRequest)
+      val getAlertsResponse = Await.result(getAlertsResponseFuture)
+      getAlertsResponse.statusCode shouldBe 404
+
     }
   }
 }

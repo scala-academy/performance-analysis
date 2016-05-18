@@ -68,7 +68,7 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
 
   private def handleGetDetails(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
     routeToLogParser(logParserActors, componentId, sender) { ref =>
-      log.debug("Requesting details from {}",ref.path)
+      log.debug("Requesting details from {}", ref.path)
       (ref ? RequestDetails) pipeTo sender
     }
   }

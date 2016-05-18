@@ -87,7 +87,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       testProbe.expectMsgPF() { case Details(Nil) => true }
     }
 
-    "register new alerting rule and foward result to requester" in {
+    "register new alerting rule and forward result to requester" in {
       val testComponentId = "cid"
       val testProbe = TestProbe("administrator")
       testProbe.send(adminActor, RegisterComponent(testComponentId))
@@ -98,6 +98,26 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       componentTestProbe.expectMsgPF() {case RegisterAlertingRule(`testComponentId`, `metricKey`, `rule`) => true}
       componentTestProbe.reply(AlertingRuleCreated(`testComponentId`, `metricKey`, `rule`))
       testProbe.expectMsgPF() { case AlertingRuleCreated(`testComponentId`, `metricKey`, `rule`) => true}
+    }
+
+    "delete all alert rules and forward result to requester" in {
+      val componentId = "cidd"
+      val testProbe = TestProbe("administrator")
+      testProbe.send(adminActor, RegisterComponent(componentId))
+      testProbe.expectMsgPF() { case LogParserCreated(`componentId`) => true }
+      
+      val rule = AlertRule(Threshold("2000 millis"), RuleAction("dummy-action"))
+      val metricKey = "mkey"
+      testProbe.send(adminActor, RegisterAlertingRule(componentId, `metricKey`, rule))
+      componentTestProbe.expectMsgPF() {case RegisterAlertingRule(`componentId`, `metricKey`, `rule`) => true}
+      componentTestProbe.reply(AlertingRuleCreated(componentId, `metricKey`, `rule`))
+      testProbe.expectMsgPF() { case AlertingRuleCreated(`componentId`, `metricKey`, `rule`) => true}
+
+      testProbe.send(adminActor, DeleteAllAlertingRules(componentId, metricKey))
+      componentTestProbe.expectMsgPF() {case DeleteAllAlertingRules(`componentId`, `metricKey`) => true}
+      componentTestProbe.reply(AlertRulesDeleted(componentId))
+
+      testProbe.expectMsgPF() {case AlertRulesDeleted(`componentId`) => true}
     }
   }
 }

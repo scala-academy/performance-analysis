@@ -99,7 +99,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   private def handleGetAlertRules(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
-      case AlertRuleDetails(details) =>
+      case AlertRulesDetails(details) =>
         Future(HttpResponse())
       case MetricNotFound =>
         Future(HttpResponse(status = NotFound))

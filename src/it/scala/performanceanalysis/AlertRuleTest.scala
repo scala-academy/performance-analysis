@@ -33,7 +33,6 @@ class AlertRuleTest extends IntegrationTestBase with Protocol {
       val registerAlertResponse = Await.result(registerAlertResponseFuture)
       registerAlertResponse.statusCode shouldBe 201
 
-
       When("""When I do a POST to /components/logsObtainableComp/metrics/unknown-metric-key/alerting-rules" """)
       val registerAlertToFailRequest = buildPostRequest(adminRequestHost, "/components/logsObtainableComp/metrics/unknown-metric-key/alerting-rules",
         alertPayload)
@@ -42,5 +41,4 @@ class AlertRuleTest extends IntegrationTestBase with Protocol {
       registerAlertToFailResponse.statusCode shouldBe 404
     }
   }
-
 }
