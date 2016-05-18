@@ -71,7 +71,7 @@ trait IntegrationTestBase
     responseFuture.futureValue
   }
 
-  def adminGetResonse(path: String): Future[Response] = {
+  def adminGetResponse(path: String): Future[Response] = {
     val request = buildGetRequest(adminRequestHost, path)
     adminClient(request)
   }
