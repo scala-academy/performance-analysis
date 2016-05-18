@@ -116,9 +116,10 @@ object Protocol {
   case class CheckRuleBreak(value: String)
 
   /**
-    * Used by ActionAlertActor to trigger an action when a rule breaks. Handled by AlertActionActor.
+    * Used to notify the AlertActionActor about the fact an alerting rule was violated
     */
-  case class Action(url: String, message: String)
+  case class AlertRuleViolated(endpoint: String, message: String)
+
 }
 
 trait Protocol extends DefaultJsonProtocol {
