@@ -3,6 +3,7 @@ package performanceanalysis
 import akka.actor._
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
+import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{AlertingRuleCreated, CheckRuleBreak, _}
 
 
@@ -28,7 +29,7 @@ class LogParserActor extends Actor with ActorLogging {
 
     case RequestAlertRules(metricKey) =>
       log.debug("received request for alert rules of {}", metricKey)
-      handleGetAlertRules(alertsByMetric, metricKey)
+      handleGetAlertRules(metrics, alertsByMetric, metricKey)
 
     case metric: Metric =>
       log.debug("received post with metric {}", metric)
@@ -61,29 +62,37 @@ class LogParserActor extends Actor with ActorLogging {
     alertsByMetric + (msg.metricKey -> updatedActionActorsForMetric)
   }
 
-  private def handleGetAlertRules(alertsByMetric: Map[MetricKey, List[ActorRef]], metricKey: String) = {
-
-    alertsByMetric.get(metricKey) match {
-      case None =>
-        sender() ! MetricNotFound
-      case Some(ruleList) =>
-        context.actorOf(GetAlertsActor.props(ruleList, sender()))
-    }
+  private def handleGetAlertRules(metrics: List[Metric], alertsByMetric: Map[MetricKey, List[ActorRef]], metricKey: String) = {
+   metricWithKey(metricKey, metrics) match {
+     case None =>
+       sender() ! MetricNotFound
+     case Some(_) =>
+       alertsByMetric.get(metricKey) match {
+         case None =>
+           sender() ! AlertRulesDetails(Set[AlertRule]())
+         case Some(ruleList) =>
+           context.actorOf(GetAlertsActor.props(ruleList, sender()))
+       }
+   }
   }
 
   private def handleDeleteRules(metrics: List[Metric], alertsByMetric: Map[MetricKey, List[ActorRef]], msg: DeleteAllAlertingRules) = {
     log.debug("received delete request for all rules on metric {}", msg.metricKey)
-
-    alertsByMetric.get(msg.metricKey) match {
+    metricWithKey(msg.metricKey, metrics) match {
       case None =>
         sender() ! MetricNotFound(msg.componentId, msg.metricKey)
-      case Some(ruleList) =>
-        for (ruleActor <- ruleList) {
-          context.stop(ruleActor)
-        }
+      case Some(_) =>
+        alertsByMetric.get(msg.metricKey) match {
+          case None =>
+            sender() ! NoAlertsFound(msg.componentId, msg.metricKey)
+          case Some(ruleList) =>
+            for (ruleActor <- ruleList) {
+              context.stop(ruleActor)
+            }
 
-        context.become(normal(metrics, alertsByMetric - msg.metricKey))
-        sender() ! AlertRulesDeleted(msg.componentId)
+            context.become(normal(metrics, alertsByMetric - msg.metricKey))
+            sender() ! AlertRulesDeleted(msg.componentId)
+        }
     }
   }
 

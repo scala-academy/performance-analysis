@@ -44,7 +44,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
               }
             } ~ get {
               // Handle GET of an existing component
-              complete(handleGetAlertRules(administratorActor ? GetAlertRules(componentId, metricKey)))
+              complete(handleGet(administratorActor ? GetAlertRules(componentId, metricKey)))
             } ~ delete {
               // Delete all registered alert rules
               log.debug("Received DELETE for all rules for {}/{}", componentId, metricKey)
@@ -94,15 +94,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         Future(HttpResponse(status = StatusCodes.NoContent))
       case msg: MetricNotFound =>
         Future(HttpResponse(status = NotFound))
-    }
-  }
-
-  private def handleGetAlertRules(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case AlertRulesDetails(details) =>
-        Future(HttpResponse())
-      case MetricNotFound =>
-        Future(HttpResponse(status = NotFound))
+      case NoAlertsFound(_, _) =>
+        Future(HttpResponse(status = StatusCodes.NoContent))
     }
   }
 
@@ -121,6 +114,11 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case Details(metrics) =>
         val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
+      case msg:AlertRulesDetails =>
+        val entityFuture = Marshal(msg).to[ResponseEntity]
+        toFutureResponse(entityFuture, StatusCodes.OK)
+      case MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
     }
   }
 

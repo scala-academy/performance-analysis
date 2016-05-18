@@ -101,6 +101,19 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
+    "handle a DELETE on a metric with no alerts by sending 203" in new AdministratorWithProbe {
+      val componentId = "knownId"
+      val metricKey = "knownKey"
+      val routeTestResult = Delete(s"/components/$componentId/metrics/$metricKey/alerting-rules") ~> routes
+
+      probe.expectMsgPF() { case DeleteAllAlertingRules(`componentId`, `metricKey`) => true }
+      probe.reply(NoAlertsFound(componentId, metricKey))
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.NoContent
+      }
+    }
+
     "handle a POST on /components by creating a new registered componentId" in new AdministratorWithProbe() {
       val routeTestResult = Post("/components/metrics", RegisterComponent("RegisteredComponent1")) ~> routes
 
@@ -135,7 +148,6 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       routeTestResult ~> check {
         response.status shouldBe Created
       }
-
     }
   }
 }

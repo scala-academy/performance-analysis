@@ -42,6 +42,8 @@ object Protocol {
 
   case class AlertRulesDetails(alertRules: Set[Rules.AlertRule])
 
+  case class NoAlertsFound(componentId:String, metricKey: String)
+
   case class MetricDetails(metric: Metric, alertRules: Set[Rules.AlertRule])
 
   /**
