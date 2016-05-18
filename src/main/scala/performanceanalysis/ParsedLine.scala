@@ -1,9 +1,10 @@
 package performanceanalysis
 
-import java.time.LocalDateTime
+import java.time.{DateTimeException, LocalDateTime}
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, ResolverStyle}
 import java.time.temporal.ChronoField
 
+import scala.util.Try
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
@@ -35,15 +36,17 @@ object ParsedLine {
         val hour = m.group(4).toInt
         val min = m.group(5).toInt
         val sec = m.group(6).toInt
-        val nano = m.group(7) match {
-          case null => 0
-          case "." => 0
-          case s => (s.toDouble * 1000000000).toInt
+        val nanoOption: Option[String] = Try(Option(m.group(7))).toOption.flatten
+        val nano = nanoOption match {
+          case None => 0
+          case Some(".") => 0
+          case Some(s) => (s.toDouble * 1000000000).toInt
         }
         LocalDateTime.of(year, month, day, hour, min, sec, nano)
       }
     } catch {
-      case e: Exception => None
+      case e: MatchError => None
+      case e: DateTimeException => None
     }
   }
 
