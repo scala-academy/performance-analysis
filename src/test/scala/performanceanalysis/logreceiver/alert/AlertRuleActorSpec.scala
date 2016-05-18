@@ -21,7 +21,7 @@ class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     "trigger an action when incoming value breaks the given rule" in {
       testProbe.send(alertRuleActor, CheckRuleBreak("2001 ms"))
 
-      alertActionActorProbe.expectMsg(Action("aUrl", s"Rule $rule was broken for component id aCid and metric key aMetricKey"))
+      alertActionActorProbe.expectMsg(AlertRuleViolated("aUrl", s"Rule $rule was broken for component id aCid and metric key aMetricKey"))
     }
 
     "NOT trigger an action when incoming does not break the given rule" in {
