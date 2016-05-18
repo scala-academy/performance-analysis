@@ -80,7 +80,7 @@ trait IntegrationTestBase
     val request = buildGetRequest(adminRequestHost, path)
     awaitResponse(adminClient, request)
   }
-
+  
   def logReceiverPostResponse(path: String, data: String): Future[Response] = {
     val request = buildPostRequest(logReceiverRequestHost, path, data)
     logReceiverClient(request)

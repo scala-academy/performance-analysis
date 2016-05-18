@@ -1,6 +1,6 @@
 package performanceanalysis
 
-import akka.http.scaladsl.model.StatusCodes.{Accepted, Created}
+import akka.http.scaladsl.model.StatusCodes.{Accepted, Created, MethodNotAllowed}
 import com.twitter.finagle.http
 import org.scalatest.concurrent.ScalaFutures
 import performanceanalysis.base.IntegrationTestBase
@@ -18,7 +18,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       val request  = http.Request(http.Method.Get, "/")
       val response = performLogReceiverRequest(request)
       whenReady(response, timeout(1 second)) { result =>
-        result.getStatusCode() shouldBe 405
+        result.getStatusCode() shouldBe MethodNotAllowed.intValue
         Then("the response should have status code 405")
       }
     }

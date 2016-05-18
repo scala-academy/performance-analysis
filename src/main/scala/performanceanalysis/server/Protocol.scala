@@ -65,7 +65,7 @@ object Protocol {
   case class Details(metrics: List[Metric])
 
   /**
-    * Used by Administrator towards LogReceiver to notify it ofa new LogReceiver actor
+    * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
   case class RegisterNewLogParser(componentId: String, actor: ActorRef)
 
