@@ -1,10 +1,11 @@
 package performanceanalysis
 
 import java.time.LocalDateTime
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, DateTimeParseException, ResolverStyle}
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, ResolverStyle}
 import java.time.temporal.ChronoField
 
 import scala.util.matching.Regex
+import scala.util.matching.Regex.Match
 
 object LineParser {
 
@@ -22,19 +23,35 @@ class LineParser(regex: Regex) {
 
 object ParsedLine {
 
-  val dtRegex = """\d{1,2}[ -/.]\d{1,2}[ -/.]\d{4}[ T]\d{1,2}[:.]\d{2}[.:]\d{2}(.\d{0,9})?""".r
+  val dtRegex = """(\d{1,2})[ -/.](\d{1,2})[ -/.](\d{4})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
 
-  private def formatWithFraction(pattern: String): DateTimeFormatter = new DateTimeFormatterBuilder()
-    .appendPattern(pattern)
-    .appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true)
-    .toFormatter
-    .withResolverStyle(ResolverStyle.STRICT)
+  def dateParser(iYear: Int, iMonth: Int, iDay: Int): String => Option[LocalDateTime] = {
+    (s: String) => try {
+      val dtr: Option[Match] = dtRegex.findFirstMatchIn(s)
+      dtr.map { m =>
+        val year = m.group(iYear).toInt
+        val month = m.group(iMonth).toInt
+        val day = m.group(iDay).toInt
+        val hour = m.group(4).toInt
+        val min = m.group(5).toInt
+        val sec = m.group(6).toInt
+        val nano = m.group(7) match {
+          case null => 0
+          case "." => 0
+          case s => (s.toDouble * 1000000000).toInt
+        }
+        LocalDateTime.of(year, month, day, hour, min, sec, nano)
+      }
+    } catch {
+      case e: Exception => None
+    }
+  }
 
-  private val ymdFormat = formatWithFraction("uuuu[/][-][.][ ]m[/][-][.][ ]d HH[:][.]mm[:][.]ss")
+  private val ymdParser = dateParser(1, 2, 3)
 
-  private val dmyFormat = formatWithFraction("d[/][-][.][ ]M[/][-][.][ ]uuuu HH[:][.]mm[:][.]ss")
+  private val dmyParser = dateParser(3, 2, 1)
 
-  private val mdyFormat = formatWithFraction("M[/][-][.][ ]d[/][-][.][ ]uuuu HH[:][.]mm[:][.]ss")
+  private val mdyParser = dateParser(3, 1, 2)
 
 }
 
@@ -42,16 +59,7 @@ class ParsedLine(line: String, regex: Regex) {
 
   import ParsedLine._
 
-  lazy val dateTime: Option[LocalDateTime] = {
-    val dateString: Option[String] = dtRegex.findFirstIn(line)
-    dateString.flatMap({ s =>
-      try {
-        Some(LocalDateTime.parse(s, mdyFormat))
-      } catch {
-        case e: DateTimeParseException => None
-      }
-    })
-  }
+  lazy val dateTime: Option[LocalDateTime] = mdyParser(line)
 
   lazy val metric: Option[String] = regex.findFirstMatchIn(line).filter(_.groupCount >= 1).map(_ group 1)
 
