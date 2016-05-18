@@ -1,6 +1,5 @@
 package performanceanalysis
 
-import com.twitter.finagle.http.Response
 import com.twitter.util.Await
 import performanceanalysis.base.IntegrationTestBase
 import performanceanalysis.server.Protocol
@@ -71,11 +70,5 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       val result = response.contentString.parseJson.convertTo[Map[String, List[Map[String, String]]]]
       assert(result("metrics").contains(Map("regex" -> "+d", "metric-key" -> "a-numerical-metric")))
     }
-  }
-
-  def registerComponent(componentId: String): Response = {
-    val path = "/components"
-    val data = s"""{"componentId" : "${componentId}"}"""
-    awaitAdminPostResonse(path, data)
   }
 }

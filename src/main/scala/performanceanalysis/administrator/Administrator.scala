@@ -25,7 +25,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
-  def componentsRoute: Route = pathPrefix("components") {
+  override protected def componentsRoute: Route = pathPrefix("components") {
     pathPrefix(Segment) { componentId =>
       get {
         // Handle GET of an existing component to obtain metrics only
@@ -67,8 +67,6 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         }
       }
   }
-
-  override protected def routes: Route = componentsRoute
 
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
