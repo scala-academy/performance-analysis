@@ -1,8 +1,8 @@
 package performanceanalysis
 
 import java.time.{DateTimeException, LocalDateTime}
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder, ResolverStyle}
-import java.time.temporal.ChronoField
+
+import performanceanalysis.ParsedLine._
 
 import scala.util.Try
 import scala.util.matching.Regex
@@ -59,8 +59,6 @@ object ParsedLine {
 }
 
 class ParsedLine(line: String, regex: Regex) {
-
-  import ParsedLine._
 
   lazy val dateTime: Option[LocalDateTime] = mdyParser(line)
 
