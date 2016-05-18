@@ -69,13 +69,13 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     "handle a GET on /components/<known componentID>/metrics/<known metricKey>/alerting-rules" in new AdministratorWithProbe with TestConstants {
       val routeTestResult = Get(s"/components/$knownId/metrics/$knownKey/alerting-rules") ~> routes
 
-      val answer = AlertRulesDetails(Set[AlertRule](AlertRule(Threshold("t"), Action("a"))))
+      val answer = AllAlertRuleDetails(Set[AlertRule](AlertRule(Threshold("t"), Action("a"))))
       probe.expectMsg(GetAlertRules(knownId, knownKey))
       probe.reply(answer)
 
       routeTestResult ~> check {
         response.status shouldBe StatusCodes.OK
-        responseAs[AlertRulesDetails] shouldBe answer
+        responseAs[AllAlertRuleDetails] shouldBe answer
       }
     }
 

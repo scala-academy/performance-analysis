@@ -1,7 +1,7 @@
 package performanceanalysis
 
 import akka.actor.{ActorLogging, Actor, Props, ActorRef}
-import performanceanalysis.server.Protocol.{AlertRulesDetails, AlertRuleDetails, GetDetails}
+import performanceanalysis.server.Protocol.{RequestAlertRuleDetails, AllAlertRuleDetails, SingleAlertRuleDetails}
 import performanceanalysis.server.Protocol.Rules.AlertRule
 
 /**
@@ -14,17 +14,17 @@ object GetAlertsActor {
 class GetAlertsActor(alertActors: List[ActorRef], originalSender: ActorRef) extends Actor with ActorLogging {
 
   for (alertActor <- alertActors) {
-    alertActor ! GetDetails("")
+    alertActor ! RequestAlertRuleDetails
   }
 
   def normal(ruleSet: Set[AlertRule], countdown:Int): Receive = {
-    case AlertRuleDetails(alertRule) =>
+    case SingleAlertRuleDetails(alertRule) =>
       val newCountdown = countdown - 1
       val newRuleSet = ruleSet + alertRule
 
       if (newCountdown == 0) {
         log.debug("DONE, sending answer to {}", originalSender)
-        originalSender ! AlertRulesDetails(newRuleSet)
+        originalSender ! AllAlertRuleDetails(newRuleSet)
         context.stop(self)
       }
       context.become(normal(newRuleSet, newCountdown))

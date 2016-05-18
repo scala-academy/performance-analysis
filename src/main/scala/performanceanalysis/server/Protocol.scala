@@ -34,17 +34,35 @@ object Protocol {
     */
   case class GetDetails(componentId: String)
 
+  /**
+    * Used by Administrator towards AdministratorActor to request AlertRules of a metric of a component
+    */
   case class GetAlertRules(componentId: String, metricKey: String)
 
+  /**
+    * Used by AdministratorActor to request AlertRules of a component
+    */
   case class RequestAlertRules(metricKey: String)
 
-  case class AlertRuleDetails(alertRule: Rules.AlertRule)
+  /**
+    * Used by GetAlertsActor to request details from AlertRuleActor
+    */
+  case object RequestAlertRuleDetails
 
-  case class AlertRulesDetails(alertRules: Set[Rules.AlertRule])
+  /**
+    * Used by AlertRuleActor to send its details to GetAlertsActor
+    */
+  case class SingleAlertRuleDetails(alertRule: Rules.AlertRule)
 
+  /**
+    * Used by GetAlertsActor to send the collected AlertRules to AdministratorActor
+    */
+  case class AllAlertRuleDetails(alertRules: Set[Rules.AlertRule])
+
+  /**
+    * Used by LogParserActor to indicate to AdministratorActor that no Alerts are registered for this metric
+    */
   case class NoAlertsFound(componentId:String, metricKey: String)
-
-  case class MetricDetails(metric: Metric, alertRules: Set[Rules.AlertRule])
 
   /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components
@@ -102,7 +120,6 @@ object Protocol {
   case class MetricNotFound(componentId: String, metricKey: String)
 
   object Rules {
-
     /**
       * Encapsulates a basic alerting rule.
       */
@@ -114,7 +131,6 @@ object Protocol {
     }
 
     case class Action(url: String)
-
   }
 
   /**
@@ -158,5 +174,5 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
   implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
 
-  implicit val alertRulesDetailsFormatter = jsonFormat1(AlertRulesDetails.apply)
+  implicit val alertRulesDetailsFormatter = jsonFormat1(AllAlertRuleDetails.apply)
 }

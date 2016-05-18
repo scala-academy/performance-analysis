@@ -103,11 +103,11 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       expectMsg(MetricNotFound)
     }
 
-    "forward GetDetails messages to AlertRuleActors when requesting alert rules" in new TestSetupWithAlertsRegistered {
+    "forward RequestAlertRuleDetails messages to AlertRuleActors when requesting alert rules" in new TestSetupWithAlertsRegistered {
       logParserActorRef ! RequestAlertRules(metricKey1)
 
-      alertRule1ActorProbe.expectMsg(GetDetails(""))
-      alertRule2ActorProbe.expectMsg(GetDetails(""))
+      alertRule1ActorProbe.expectMsg(RequestAlertRuleDetails)
+      alertRule2ActorProbe.expectMsg(RequestAlertRuleDetails)
 
       expectNoMsg()
     }

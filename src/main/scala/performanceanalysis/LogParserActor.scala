@@ -87,7 +87,7 @@ class LogParserActor extends Actor with ActorLogging {
       case Some(_) =>
         alertsByMetric.get(metricKey) match {
           case None =>
-            sender() ! AlertRulesDetails(Set[AlertRule]())
+            sender() ! AllAlertRuleDetails(Set[AlertRule]())
           case Some(ruleList) =>
             context.actorOf(GetAlertsActor.props(ruleList, sender()))
         }

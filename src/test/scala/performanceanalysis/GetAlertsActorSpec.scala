@@ -13,13 +13,13 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
 
   "GetAlertsActor" must {
 
-    "send GetDetails to ruleActors" in {
+    "send RequestAlertRuleDetails to ruleActors" in {
       val senderProbe = TestProbe()
       val ruleActor = TestProbe()
       val rules = List[ActorRef](ruleActor.testActor)
       TestActorRef(new GetAlertsActor(rules, senderProbe.testActor))
 
-      ruleActor.expectMsg(GetDetails(""))
+      ruleActor.expectMsg(RequestAlertRuleDetails)
     }
 
     "send the result back and stop itself when all ruleActors have replied" in {
@@ -33,17 +33,16 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       senderProbe.watch(ref)
 
       val alertRule1 = AlertRule(Threshold("max"), Protocol.Rules.Action("url1"))
-      ruleActorProbe1.expectMsg(GetDetails(""))
-      ruleActorProbe1.reply(AlertRuleDetails(alertRule1))
+      ruleActorProbe1.expectMsg(RequestAlertRuleDetails)
+      ruleActorProbe1.reply(SingleAlertRuleDetails(alertRule1))
 
       senderProbe.expectNoMsg()
 
       val alertRule2 = AlertRule(Threshold("max"), Protocol.Rules.Action("url2"))
-      ruleActorProbe2.expectMsg(GetDetails(""))
-      ruleActorProbe2.reply(AlertRuleDetails(alertRule2))
+      ruleActorProbe2.expectMsg(RequestAlertRuleDetails)
+      ruleActorProbe2.reply(SingleAlertRuleDetails(alertRule2))
 
-      senderProbe.expectMsg(AlertRulesDetails(Set[AlertRule](alertRule1, alertRule2)))
-
+      senderProbe.expectMsg(AllAlertRuleDetails(Set[AlertRule](alertRule1, alertRule2)))
       senderProbe.expectTerminated(ref)
     }
   }
