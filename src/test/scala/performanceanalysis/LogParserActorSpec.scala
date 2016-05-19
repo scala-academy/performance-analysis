@@ -21,6 +21,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertRule1ActorProbe = TestProbe("alertRule1Actor")
     val alertRule2ActorProbe = TestProbe("alertRule2Actor")
     val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
+    val alertingRule = AlertingRule(Threshold("2000 ms"), RuleAction("aUrl"))
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
       override def create(context: ActorContext, rule: AlertingRule, compId: String, metricKey: String): ActorRef = {
@@ -31,12 +32,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
         }
       }
     }
-  }
 
-  val metricKey1: MetricKey = "aMetricKey1"
-  val metricKey2: MetricKey = "aMetricKey2"
-
-  trait TestSetupWithMetricRegistered extends TestSetup {
     def sendMetricAndAssertResponse(metric: Metric): Unit = {
       logParserActorRef ! metric
       expectMsg(MetricRegistered(metric))
@@ -46,6 +42,12 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       logParserActorRef ! RegisterAlertingRule("aCid", key, rule)
       expectMsg(AlertingRuleCreated("aCid", key, rule))
     }
+  }
+
+  val metricKey1: MetricKey = "aMetricKey1"
+  val metricKey2: MetricKey = "aMetricKey2"
+
+  trait TestSetupWithMetricRegistered extends TestSetup {
 
     def alertingRule(ruleAction: String): AlertingRule = {
       val someThreshold: Threshold = Threshold("1800 ms")
@@ -73,7 +75,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     }
 
     "send message MetricNotFound when no metric for given altering rule found" in new TestSetup {
-      logParserActorRef ! RegisterAlertingRule("aCid", metricKey1, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      logParserActorRef ! RegisterAlertingRule("aCid", metricKey1, alertingRule)
       expectMsg(MetricNotFound("aCid", metricKey1))
     }
 
@@ -93,11 +95,9 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
 
     "parse log with boolean metric" in new TestSetup {
       val metric = Metric("key-with-error", "(ERROR)", ValueType(classOf[Boolean]))
-      logParserActorRef ! metric
-      expectMsg(MetricRegistered(metric))
-      val registerRule = RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
-      logParserActorRef ! registerRule
-      expectMsg(AlertingRuleCreated("aCid", metric.metricKey, registerRule.rule))
+      sendMetricAndAssertResponse(metric)
+
+      registerAlertingRule(metric.metricKey, alertingRule)
 
       // submit a log with ERROR in it
       logParserActorRef ! SubmitLog("aCid", "log line with ERROR in it")
@@ -106,11 +106,9 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
 
     "parse log with boolean metric when no match should not trigger a message to AlertRuleActor" in new TestSetup {
       val metric = Metric("key-with-no-error", "(ERROR)", ValueType(classOf[Boolean]))
-      logParserActorRef ! metric
-      expectMsg(MetricRegistered(metric))
-      val registerRule = RegisterAlertingRule("aCid", metric.metricKey, AlertingRule(Threshold("2000 ms"), RuleAction("aUrl")))
-      logParserActorRef ! registerRule
-      expectMsg(AlertingRuleCreated("aCid", metric.metricKey, registerRule.rule))
+      sendMetricAndAssertResponse(metric)
+
+      registerAlertingRule(metric.metricKey, alertingRule)
 
       logParserActorRef ! SubmitLog("aCid", "log line with INFO in it")
       defaultAlertRuleActorProbe.expectNoMsg

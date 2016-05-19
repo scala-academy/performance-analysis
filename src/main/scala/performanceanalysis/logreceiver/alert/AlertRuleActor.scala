@@ -25,7 +25,7 @@ class AlertRuleActor(alertingRule: AlertingRule, componentId: String, metricKey:
   }
 
   private def doesBreakRule(duration: Duration) = {
-    log.info(s"Checking if $duration breaks $alertingRule")
+    log.debug("Checking if {} breaks {}", duration, alertingRule)
     duration > alertingRule.threshold.limit
   }
 
