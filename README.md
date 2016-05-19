@@ -43,14 +43,19 @@ Actor Design
     AdministratorActor;
     LogParserActor;
     LogReceiverActor;
+    AlertRuleActor;
+    AlertActionActor;
     ;
-    Administrator -> AdministratorActor [label="RegisterMetric\\nGetRegisteredComponents\\nRegisterComponent\\nGetDetails"];
+    Administrator -> AdministratorActor [label="RegisterMetric\\nGetRegisteredComponents\\nRegisterComponent\\nRegisterAlertingRule\\nGetDetails"];
     ;
-    AdministratorActor -> Administrator [label="MetricCreated\\nRegisteredComponents\\nLogParserCreated\\nLogParserExisted\\nDetails\\nLogParserNotFound"];
+    AdministratorActor -> Administrator [label="MetricCreated\\nRegisteredComponents\\nLogParserCreated\\nLogParserExisted\\nDetails\\nLogParserNotFound\\nMetricNotFound\\nAlertingRuleCreated"];
     ;
-    AdministratorActor -> LogParserActor [label="RequestDetails\\nMetric"];
-    LogParserActor -> AdministratorActor [label="Details\\nMetricRegistered"];
+    AdministratorActor -> LogParserActor [label="RequestDetails\\nRegisterMetric\\nRegisterAlertingRule"];
+    LogParserActor -> AdministratorActor [label="Details\\nMetricRegistered\\nMetricNotFound\\nAlertingRuleCreated"];
+    LogParserActor -> AlertRuleActor [label="CheckRuleBreak"];
+    AlertRuleActor -> AlertActionActor [label="Action"];
     ;
-    LogReceiver -> LogReceiverActor [label="SubmitLogs"];
+    LogReceiver -> LogReceiverActor [label="SubmitLog"];
+    LogReceiverActor -> LogReceiver [label="LogSubmitted"];
   }
 )
