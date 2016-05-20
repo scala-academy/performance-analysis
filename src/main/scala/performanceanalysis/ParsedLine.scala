@@ -20,11 +20,6 @@ class LineParser(regex: Regex) {
 
 }
 
-object ParsedLine {
-
-
-}
-
 class ParsedLine(line: String, regex: Regex) {
 
   lazy val dateTime: Option[LocalDateTime] = mdyParser(line)

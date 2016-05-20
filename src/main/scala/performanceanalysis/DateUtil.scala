@@ -12,6 +12,15 @@ object DateUtil {
 
   private val yearLastRegex = """(\d{1,2})[ -/\.](\d{1,2})[ -/\.](\d{4})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
 
+  private def parseNano(s: String): Int = {
+    // note that an optional group will be null when not supplied
+    Try(Option(s)).toOption.flatten match {
+      case None => 0
+      case Some(".") => 0
+      case Some(s) => (s.toDouble * 1000000000).toInt
+    }
+  }
+
   private def dateParser(regex: Regex, iYear: Int, iMonth: Int, iDay: Int): String => Option[LocalDateTime] = {
     (s: String) => Try {
       val dtr: Option[Match] = regex.findFirstMatchIn(s)
@@ -22,12 +31,7 @@ object DateUtil {
         val hour = m.group(4).toInt
         val min = m.group(5).toInt
         val sec = m.group(6).toInt
-        val nanoOption: Option[String] = Try(Option(m.group(7))).toOption.flatten
-        val nano = nanoOption match {
-          case None => 0
-          case Some(".") => 0
-          case Some(s) => (s.toDouble * 1000000000).toInt
-        }
+        val nano = parseNano(m.group(7))
         LocalDateTime.of(year, month, day, hour, min, sec, nano)
       }
     } match {
