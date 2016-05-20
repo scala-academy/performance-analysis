@@ -2,15 +2,12 @@ package performanceanalysis
 
 import java.time.LocalDateTime
 
-import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 import scala.util.{Failure, Success, Try}
 
 object DateUtil {
 
-  private val yearFirstRegex = """(\d{4})[ -/\.](\d{1,2})[ -/\.](\d{1,2})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
-
-  private val yearLastRegex = """(\d{1,2})[ -/\.](\d{1,2})[ -/\.](\d{4})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
+  private val regex = """(\d{1,2}|\d{4})[ -/\.](\d{1,2})[ -/\.](\d{1,2}|\d{4})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
 
   private def parseNano(s: String): Int = {
     // note that an optional group will be null when not supplied
@@ -21,7 +18,7 @@ object DateUtil {
     }
   }
 
-  private def dateParser(regex: Regex, iYear: Int, iMonth: Int, iDay: Int): String => Option[LocalDateTime] = {
+  private def dateParser(iYear: Int, iMonth: Int, iDay: Int): String => Option[LocalDateTime] = {
     (s: String) => Try {
       val dtr: Option[Match] = regex.findFirstMatchIn(s)
       dtr.map { m =>
@@ -40,11 +37,11 @@ object DateUtil {
     }
   }
 
-  val ymdParser = dateParser(yearFirstRegex, 1, 2, 3)
+  val ymdParser = dateParser(1, 2, 3)
 
-  val dmyParser = dateParser(yearLastRegex, 3, 2, 1)
+  val dmyParser = dateParser(3, 2, 1)
 
-  val mdyParser = dateParser(yearLastRegex, 3, 1, 2)
+  val mdyParser = dateParser(3, 1, 2)
 
 
 }
