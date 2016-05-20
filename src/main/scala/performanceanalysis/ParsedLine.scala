@@ -2,7 +2,7 @@ package performanceanalysis
 
 import java.time.LocalDateTime
 
-import performanceanalysis.DateUtil._
+import performanceanalysis.DateParser._
 
 import scala.util.matching.Regex
 
@@ -22,7 +22,7 @@ class LineParser(regex: Regex) {
 
 class ParsedLine(line: String, regex: Regex) {
 
-  lazy val dateTime: Option[LocalDateTime] = mdyParser(line)
+  lazy val dateTime: Option[LocalDateTime] = parseMDY(line)
 
   lazy val metric: Option[String] = regex.findFirstMatchIn(line).filter(_.groupCount >= 1).map(_ group 1)
 
