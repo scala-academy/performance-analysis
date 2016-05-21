@@ -2,7 +2,7 @@ package performanceanalysis
 
 import java.time.LocalDateTime
 
-import performanceanalysis.DateParser._
+import performanceanalysis.DateTimeParser._
 
 import scala.util.matching.Regex
 
