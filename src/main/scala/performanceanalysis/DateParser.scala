@@ -1,6 +1,6 @@
 package performanceanalysis
 
-import java.time.LocalDateTime
+import java.time.{LocalDate, LocalDateTime, LocalTime}
 
 import performanceanalysis.DateParser._
 
@@ -23,26 +23,27 @@ object DateParser {
 
 private class DateParser(iYear: Int, iMonth: Int, iDay: Int) {
 
-  def year(m: Match) = m.group(iYear).toInt
+  def rawDateParser(m: Match): LocalDate = {
+    val year = m.group(iYear).toInt
+    val month = m.group(iMonth).toInt
+    val day = m.group(iDay).toInt
+    LocalDate.of(year, month, day)
+  }
 
-  def month(m: Match) = m.group(iMonth).toInt
-
-  def day(m: Match) = m.group(iDay).toInt
-
-  def hour(m: Match) = m.group(4).toInt
-
-  def min(m: Match) = m.group(5).toInt
-
-  def sec(m: Match) = m.group(6).toInt
-
-  def nano(m: Match) = Try(Option(m.group(7))).toOption.flatten match {
-    case None => 0
-    case Some(".") => 0
-    case Some(s) => (s.toDouble * 1000000000).toInt
+  def rawTimeParser(m: Match): LocalTime = {
+    val hour = m.group(4).toInt
+    val min = m.group(5).toInt
+    val sec = m.group(6).toInt
+    val nano = Try(Option(m.group(7))).toOption.flatten match {
+      case None => 0
+      case Some(".") => 0
+      case Some(s) => (s.toDouble * 1000000000).toInt
+    }
+    LocalTime.of(hour, min, sec, nano)
   }
 
   def rawParser(m: Match): LocalDateTime = {
-    LocalDateTime.of(year(m), month(m), day(m), hour(m), min(m), sec(m), nano(m))
+    LocalDateTime.of(rawDateParser(m), rawTimeParser(m))
   }
 
   def parser(s: String): Option[LocalDateTime] =
