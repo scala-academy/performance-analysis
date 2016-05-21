@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 import performanceanalysis.base.SpecBase
 
-class DateParserSpec extends SpecBase {
+class DateTimeParserSpec extends SpecBase {
 
   "DateParser" should {
 
