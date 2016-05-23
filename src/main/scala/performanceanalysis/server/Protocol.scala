@@ -35,6 +35,10 @@ object Protocol {
   case class GetDetails(componentId: String)
 
   /**
+    * Used by the Administrator to request all posted logLines for a component
+    */
+  case class GetComponentLogLines(componentId: String)
+  /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components
     */
   case object GetRegisteredComponents

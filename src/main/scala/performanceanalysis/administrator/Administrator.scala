@@ -30,16 +30,14 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
-
       } ~ pathPrefix("logs") {
         get {
-          ???
+          complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
         }
       } ~ pathPrefix("metrics") {
             post {
               pathEnd {
                 entity(as[Metric]) { metric =>
-
                   log.debug(s"Received POST on /components/$componentId with entity $metric")
                   complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
                 }
