@@ -2,42 +2,37 @@ package performanceanalysis.logreceiver
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.server.Protocol._
+import performanceanalysis.util.Utils.split
 
 /**
   * Created by Jordi on 5-4-2016.
   */
 
 object LogReceiverActor {
-
   def props: Props = Props(new LogReceiverActor)
 }
 
 class LogReceiverActor extends Actor with ActorLogging {
   private type ComponentId = String
   private type LogParser = ActorRef
+  private var logParsersById: Map[ComponentId, LogParser] = Map()
 
-  def receive: Receive = normal(Map())
-
-  def normal(logParsersById: Map[ComponentId, LogParser]): Receive = {
-    case msg: SubmitLog =>
-      handleSubmitLog(logParsersById, msg)
+  def receive: Receive = {
+    case SubmitLogs(componentId, logLines) =>
+      log.debug("Logs submitted with {}", componentId)
+      handleSubmitLog(componentId, logLines)
     case RegisterNewLogParser(compId, newLogParser) =>
-      log.info("New LogParser created with {}", compId)
-      handleRegisterNewLogParser(logParsersById, compId, newLogParser)
+      log.debug("New LogParser created with {}", compId)
+      logParsersById += compId -> newLogParser
   }
 
-  private def handleSubmitLog(logParsersById: Map[ComponentId, LogParser], msg: SubmitLog) = {
-    logParsersById.get(msg.componentId) match {
-      case None => sender() ! LogParserNotFound(msg.componentId)
+  private def handleSubmitLog(compId: ComponentId, logLines: String) = {
+    logParsersById.get(compId) match {
+      case None => sender() ! LogParserNotFound(compId)
       case Some(logParser) =>
-        logParser ! msg // eventually log line will be parsed
-        sender() ! LogSubmitted
+        log.info("Log lines {}", split(logLines))
+        split(logLines) foreach { logLine => logParser ! SubmitLog(compId, logLine)}
+        sender() ! LogsSubmitted
     }
-  }
-
-  private def handleRegisterNewLogParser(logParsers: Map[ComponentId, LogParser],
-                                         compId: ComponentId, newParser: LogParser) = {
-    val newLogParserActors = logParsers.updated(compId, newParser)
-    context.become(normal(newLogParserActors))
   }
 }

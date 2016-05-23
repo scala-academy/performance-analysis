@@ -45,7 +45,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       awaitAdminPostResonse(registerAlertRule, rule).getStatusCode() shouldBe Created.intValue
 
       val logPath = s"/components/$componentId/logs"
-      val logData = """{"logline" : "some action took 200 ms"}""" //higher than 2000 ms action kicks in
+      val logData = """{"logLines" : "some action took 200 ms\nsome action took 101 ms"}""" //higher than 2000 ms action kicks in
       When(s"$logData POST to $logPath on the LogReceiver port")
       val response = logReceiverPostResponse(logPath, logData)
 
@@ -53,6 +53,9 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
         result.getStatusCode() shouldBe Accepted.intValue
         Then("the response should have status code 202")
       }
+
+      // Use EventFilter to verify message is logged
+      // Checking if 200 ms breaks AlertingRule(Threshold(2000 ms),Action(dummy-action))
     }
   }
 }
