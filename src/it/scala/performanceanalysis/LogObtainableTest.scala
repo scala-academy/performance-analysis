@@ -10,23 +10,23 @@ import scala.language.postfixOps
 
 class LogObtainableTest extends IntegrationTestBase with ScalaFutures with TwitterFutures {
 
-  feature("Log Receiver should only support POST operations") {
+  feature("Parsed metrics obtainable through Administrator") {
 
-    scenario("Logs posted at the LogReceiver") {
+    scenario("Logs posted only at the LogReceiver") {
       Given("the server is running")
       val logLine = "some action took 101 seconds"
       val componentId: String = "logsObtainableComp"
-      val response = asyncRegisterComponent(componentId)
+      val response = registerComponent(componentId)
       whenReady(response, timeout(1 second)) { result =>
-        result.getStatusCode() shouldBe Created.intValue
         And(s"""I registered component "$componentId"""")
+        result.getStatusCode() shouldBe Created.intValue
       }
       val logPath = s"/components/$componentId/logs"
       val logData = s"""{"logline" : "$logLine"}"""
       val logResponse = logReceiverPostResponse(logPath, logData)
       whenReady(logResponse, timeout(1 second)) { result =>
-        result.getStatusCode() shouldBe Accepted.intValue
         And(s"""I posted a logline "$logLine" on this component""")
+        result.getStatusCode() shouldBe Accepted.intValue
       }
       val getLogPath = s"/components/$componentId/logs"
       When(s"I do a GET to $getLogPath")
@@ -36,6 +36,40 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         result.getStatusCode() shouldBe OK.intValue
         And(s"""the content should contain "$logLine"""")
         result.getContentString() should contain (logLine)
+      }
+    }
+    scenario("Logs posted and metrics registered") {
+      Given("the server is running")
+      val logLine = "some action took 101 seconds"
+      val componentId: String = "logsObtainableComp"
+      val response = registerComponent(componentId)
+      whenReady(response, timeout(1 second)) { result =>
+        And(s"""I registered component "$componentId"""")
+        result.getStatusCode() shouldBe Created.intValue
+      }
+      val metricsPath = s"/components/$componentId/metrics"
+      val metricsData = """{"regex" : "+d", "metric-key" : "a-numerical-metric"}"""
+      val metricsResponse = adminPostResonse(metricsPath, metricsData)
+      whenReady(metricsResponse, timeout(1 second)) { result =>
+        And("""with a metric with metric-key "a-numerical-metric"""")
+        result.getStatusCode() shouldBe Created.intValue
+      }
+      val logPath = s"/components/$componentId/logs"
+      val logData = s"""{"logline" : "$logLine"}"""
+      val logResponse = logReceiverPostResponse(logPath, logData)
+      whenReady(logResponse, timeout(1 second)) { result =>
+        result.getStatusCode() shouldBe Accepted.intValue
+        And(s"""I posted a logline "$logLine" on this component""")
+        And(s"""that logline is parsed by the metric "a-numerical-metric"""")
+      }
+      val getLogPath = s"/components/$componentId/metrics/a-numerical-metric"
+      When(s"I do a GET to $getLogPath")
+      val logGetResponse = adminGetResponse(getLogPath)
+      whenReady(logGetResponse, timeout(1 second)) { result =>
+        Then("the result should have statuscode 200")
+        result.getStatusCode() shouldBe OK.intValue
+        And("""the content should contain "101"""")
+        result.getContentString() should contain ("101")
       }
     }
   }

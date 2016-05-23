@@ -96,12 +96,12 @@ trait IntegrationTestBase
     logReceiverClient(request)
   }
 
-  def registerComponent(componentId: String): Response = {
+  def awaitRegisterComponent(componentId: String): Response = {
     val data = s"""{"componentId" : "$componentId"}"""
     awaitAdminPostResonse("/components", data)
   }
 
-  def asyncRegisterComponent(componentId: String): Future[Response] = {
+  def registerComponent(componentId: String): Future[Response] = {
     val data = s"""{"componentId" : "$componentId"}"""
     adminPostResonse("/components", data)
   }
