@@ -81,6 +81,11 @@ trait IntegrationTestBase
     awaitResponse(adminClient, request)
   }
 
+  def adminPostResonse(path: String, data: String): Future[Response] = {
+    val request = buildPostRequest(adminRequestHost, path, data)
+    adminClient(request)
+  }
+
   def awaitAdminGetResonse(path: String): Response = {
     val request = buildGetRequest(adminRequestHost, path)
     awaitResponse(adminClient, request)
@@ -94,5 +99,10 @@ trait IntegrationTestBase
   def registerComponent(componentId: String): Response = {
     val data = s"""{"componentId" : "$componentId"}"""
     awaitAdminPostResonse("/components", data)
+  }
+
+  def asyncRegisterComponent(componentId: String): Future[Response] = {
+    val data = s"""{"componentId" : "$componentId"}"""
+    adminPostResonse("/components", data)
   }
 }
