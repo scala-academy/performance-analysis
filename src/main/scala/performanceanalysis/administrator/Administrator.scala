@@ -31,8 +31,11 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
 
+      } ~ pathPrefix("logs") {
+        get {
+          ???
+        }
       } ~ pathPrefix("metrics") {
-
             post {
               pathEnd {
                 entity(as[Metric]) { metric =>
@@ -54,18 +57,16 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
                   complete(handleGet(administratorActor ? GetDetails(componentId)))
                 }
           }
-    } ~
-      get {
+    } ~ get {
         // Handle GET (get list of all registered components)
         complete(handleGet(administratorActor ? GetRegisteredComponents))
-      } ~
-      post {
+    } ~ post {
         // Handle POST (registration of a new component)
         entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
           log.debug(s"Received POST on /components with entity $registerComponent")
           complete(handlePost(administratorActor ? registerComponent))
         }
-      }
+    }
   }
 
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
