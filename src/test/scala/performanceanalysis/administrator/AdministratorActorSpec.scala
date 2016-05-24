@@ -1,9 +1,9 @@
 package performanceanalysis.administrator
 
 import akka.actor._
-import akka.testkit.{TestActor, TestProbe}
+import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
+import performanceanalysis.server.Protocol.Rules.{AlertingRule, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -92,7 +92,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       val testProbe = TestProbe("administrator")
       testProbe.send(adminActor, RegisterComponent(testComponentId))
       testProbe.expectMsgPF() { case LogParserCreated(`testComponentId`) => true }
-      val rule = AlertingRule(Threshold("2000 millis"), RuleAction("dummy-action"))
+      val rule = AlertingRule("_ < 2000 millis", RuleAction("dummy-action"))
       val metricKey = "mkey"
       testProbe.send(adminActor, RegisterAlertingRule(testComponentId, `metricKey`, rule))
       componentTestProbe.expectMsgPF() {case RegisterAlertingRule(`testComponentId`, `metricKey`, `rule`) => true}

@@ -5,11 +5,10 @@ import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
+import performanceanalysis.server.Protocol.Rules.{AlertingRule, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.duration._
+import scala.concurrent.duration.{Duration, _}
 import scala.language.postfixOps
 
 
@@ -21,10 +20,10 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertRule1ActorProbe = TestProbe("alertRule1Actor")
     val alertRule2ActorProbe = TestProbe("alertRule2Actor")
     val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
-    val alertingRule = AlertingRule(Threshold("2000 ms"), RuleAction("aUrl"))
+    val alertingRule = AlertingRule("_ < 2000 ms", RuleAction("aUrl"))
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
-      override def create(context: ActorContext, rule: AlertingRule, compId: String, metricKey: String): ActorRef = {
+      override def create(context: ActorContext, rule: AlertingRule, compId: String, metric: Metric): ActorRef = {
         rule match {
           case AlertingRule(_, RuleAction("aUrlForRule1")) => alertRule1ActorProbe.ref
           case AlertingRule(_, RuleAction("aUrlForRule2")) => alertRule2ActorProbe.ref
@@ -50,8 +49,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
   trait TestSetupWithMetricRegistered extends TestSetup {
 
     def alertingRule(ruleAction: String): AlertingRule = {
-      val someThreshold: Threshold = Threshold("1800 ms")
-      AlertingRule(someThreshold, RuleAction(ruleAction))
+      AlertingRule("_ < 1800 ms", RuleAction(ruleAction))
     }
 
     sendMetricAndAssertResponse(Metric(metricKey1, """(\d+ ms)""", ValueType(classOf[Duration]))) //good regex

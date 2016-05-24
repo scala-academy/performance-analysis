@@ -24,7 +24,7 @@ class AlertingRulesTest extends IntegrationTestBase with Protocol {
       val registerMetricResponse = Await.result(registerMetricResponseFuture)
       registerMetricResponse.statusCode shouldBe 201
 
-      val alertPayload = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
+      val alertPayload = """{"when": "_ > 2000 ms", "action": {"url": "dummy-action"}}"""
       val pathToAlerts = "/components/logsObtainableComp/metrics/a-numerical-metric/alerting-rules"
 
       When(s"""I do a POST to $pathToAlerts """)

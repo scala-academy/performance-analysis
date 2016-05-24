@@ -5,7 +5,8 @@ import akka.http.scaladsl.model.StatusCodes.Created
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
 import performanceanalysis.base.SpecBase
-import performanceanalysis.server.Protocol.Rules.{Action, AlertingRule, Threshold}
+import performanceanalysis.server.Protocol.Rules.{Action, AlertingRule}
+
 import performanceanalysis.server.Protocol._
 
 /**
@@ -85,7 +86,7 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "create an alerting rule via a POST on alerting-rules endpoint" in new AdministratorWithProbe() {
-      val rule = AlertingRule(Threshold("2000 millis"), Action("dummy-action"))
+      val rule = AlertingRule("_ < 2000 millis", Action("dummy-action"))
       val routeTestResult = Post("/components/cid/metrics/mkey/alerting-rules", rule) ~> routes
 
       probe.expectMsg(RegisterAlertingRule("cid", "mkey", rule))
