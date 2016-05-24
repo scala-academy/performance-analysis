@@ -10,7 +10,7 @@ object Utils {
     * @param input to be split
     * @return array of lines
     */
-  def split(input: String):Array[String] = {
+  def splitIntoLines(input: String):Array[String] = {
     input.split("[\r\n]+")
   }
 }

@@ -2,7 +2,7 @@ package performanceanalysis.logreceiver
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.server.Protocol._
-import performanceanalysis.util.Utils.split
+import performanceanalysis.util.Utils.splitIntoLines
 
 /**
   * Created by Jordi on 5-4-2016.
@@ -30,8 +30,8 @@ class LogReceiverActor extends Actor with ActorLogging {
     logParsersById.get(compId) match {
       case None => sender() ! LogParserNotFound(compId)
       case Some(logParser) =>
-        log.info("Log lines {}", split(logLines))
-        split(logLines) foreach { logLine => logParser ! SubmitLog(compId, logLine)}
+        log.info("Log lines {}", splitIntoLines(logLines))
+        splitIntoLines(logLines) foreach { logLine => logParser ! SubmitLog(compId, logLine)}
         sender() ! LogsSubmitted
     }
   }
