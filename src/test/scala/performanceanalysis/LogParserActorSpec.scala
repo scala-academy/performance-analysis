@@ -54,7 +54,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
   "LogParserActor" must {
 
     "send metrics on request for details" in new TestSetup {
-      val logParserActor = TestActorRef(LogParserActor.props)
+      val logParserActor = TestActorRef(LogParserActor.props())
       logParserActor ! RequestDetails
       expectMsg(Details(Nil))
     }

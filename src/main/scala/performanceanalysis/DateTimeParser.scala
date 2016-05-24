@@ -13,15 +13,15 @@ object DateTimeParser {
 
   private def parser(iYear: Int, iMonth: Int, iDay: Int): DateTimeParser = new DateTimeParser(iYear, iMonth, iDay)
 
-  val parseYMD: (String) => Option[LocalDateTime] = parser(1, 2, 3).parser
+  val ymd = parser(1, 2, 3)
 
-  val parseDMY: (String) => Option[LocalDateTime] = parser(3, 2, 1).parser
+  val dmy = parser(3, 2, 1)
 
-  val parseMDY: (String) => Option[LocalDateTime] = parser(3, 1, 2).parser
+  val mdy = parser(3, 1, 2)
 
 }
 
-private class DateTimeParser(iYear: Int, iMonth: Int, iDay: Int) {
+class DateTimeParser(iYear: Int, iMonth: Int, iDay: Int) {
 
   val rawDateParser = new DateParser(iYear, iMonth, iDay)
 
@@ -31,7 +31,7 @@ private class DateTimeParser(iYear: Int, iMonth: Int, iDay: Int) {
     LocalDateTime.of(rawDateParser.parse(m), rawTimeParser.parse(m))
   }
 
-  def parser(s: String): Option[LocalDateTime] =
+  def parse(s: String): Option[LocalDateTime] =
     Try(regex.findFirstMatchIn(s).map(rawParser)) match {
       case Success(option) => option
       case Failure(_) => None

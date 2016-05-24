@@ -20,6 +20,6 @@ trait LogParserActorCreater {
   implicit val timeout = Server.timeout
 
   def createLogParserActor(context: ActorContext, componentId: String): ActorRef = {
-    context.actorOf(LogParserActor.props, LogParserActorCreater.createActorName(componentId))
+    context.actorOf(LogParserActor.props(), LogParserActorCreater.createActorName(componentId))
   }
 }
