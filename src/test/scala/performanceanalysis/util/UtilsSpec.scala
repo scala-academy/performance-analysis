@@ -8,35 +8,26 @@ import performanceanalysis.util.Utils.splitIntoLines
   */
 class UtilsSpec extends SpecBase {
   "The Utils split" must {
+    val expected = Array("line1", "line2", "line3", "   line4", "\tline5")
 
     "return array of lines if windows EOL exists" in {
-      val input = "line1\r\nline2\r\nline3\r\n   line4\r\n   line5"
-      val lines = splitIntoLines(input)
-      lines.length shouldBe 5
-      lines.mkString(",") shouldBe input.replace("\r\n", ",")
+      val input = "line1\r\nline2\r\nline3\r\n   line4\r\n\tline5"
+      splitIntoLines(input) shouldBe expected
     }
 
     "return array of lines if unix or OSX EOL exists" in {
-      val input = "line1\nline2\nline3\n   line4\n   line5"
-      val lines = splitIntoLines(input)
-      lines.length shouldBe 5
-      lines.mkString(",") shouldBe input.replace("\n", ",")
-
-      val values = splitIntoLines("some action took 200 ms\nsome action took 101 ms")
-      values.length shouldBe 2
-      values.mkString(",") shouldBe "some action took 200 ms,some action took 101 ms"
+      val input = "line1\nline2\nline3\n   line4\n\tline5"
+      splitIntoLines(input) shouldBe expected
     }
 
     "return array of lines if mac EOL exists" in {
-      val input = "line1\rline2\rline3\r   line4\r   line5"
-      val lines = splitIntoLines(input)
-      lines.length shouldBe 5
-      lines.mkString(",") shouldBe input.replaceAll("\r", ",")
+      val input = "line1\rline2\rline3\r   line4\r\tline5"
+      splitIntoLines(input) shouldBe expected
     }
 
     "return same input when no EOL" in {
       val input: String = "single line"
-      splitIntoLines(input).mkString(",") shouldBe input
+      splitIntoLines(input) shouldBe Array(input)
     }
   }
 }
