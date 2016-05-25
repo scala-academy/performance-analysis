@@ -4,6 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.server.Protocol._
 
 import scala.collection.mutable
+import LogReceiverActor.splitIntoLines
 
 /**
   * Created by Jordi on 5-4-2016.
@@ -38,7 +39,6 @@ class LogReceiverActor extends Actor with ActorLogging {
   }
 
   private def handleSubmitLog(compId: ComponentId, logLines: String) = {
-    import LogReceiverActor.splitIntoLines
     logParsersById.get(compId) match {
       case None => sender() ! LogParserNotFound(compId)
       case Some(logParser) =>
