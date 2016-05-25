@@ -3,7 +3,7 @@ package performanceanalysis.logreceiver.alert
 import akka.actor.{ActorContext, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
+import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
 
@@ -15,7 +15,7 @@ class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertActionActorProbe = TestProbe("alertActionActor")
     val testProbe = TestProbe("testProbe")
 
-    val rule = AlertingRule(Threshold("2000 ms"), RuleAction("aUrl"))
+    val rule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
     val alertRuleActor = system.actorOf(Props(new AlertRuleActor(rule, "aCid", "aMetricKey") with TestAlertActionActorCreator))
 
     "trigger an action when incoming value breaks the given rule" in {
