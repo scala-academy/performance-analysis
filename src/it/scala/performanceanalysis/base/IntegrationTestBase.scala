@@ -66,20 +66,31 @@ trait IntegrationTestBase
     RequestBuilder().url(url).buildGet()
   }
 
+  def buildDeleteRequest(host: String, path: String): Request = {
+    val url = s"http://$host$path"
+    RequestBuilder().url(url).buildDelete()
+  }
+
   def awaitResponse(server: Service[Request, Response], request: Request): Response = {
     val responseFuture = server(request)
     responseFuture.futureValue
   }
 
-  def awaitAdminPostResonse(path: String, data: String): Response = {
+  def awaitAdminPostResponse(path: String, data: String): Response = {
     val request = buildPostRequest(adminRequestHost, path, data)
     awaitResponse(adminClient, request)
   }
 
-  def awaitAdminGetResonse(path: String): Response = {
+  def awaitAdminGetResponse(path: String): Response = {
     val request = buildGetRequest(adminRequestHost, path)
     awaitResponse(adminClient, request)
   }
+
+  def awaitAdminDeleteResponse(path: String): Response = {
+    val request = buildDeleteRequest(adminRequestHost, path)
+    awaitResponse(adminClient, request)
+  }
+
 
   def awaitLogReceiverPostResonse(path: String, data: String): Response = {
     val request = buildPostRequest(logReceiverRequestHost, path, data)
@@ -93,6 +104,6 @@ trait IntegrationTestBase
 
   def registerComponent(componentId: String): Response = {
     val data = s"""{"componentId" : "$componentId"}"""
-    awaitAdminPostResonse("/components", data)
+    awaitAdminPostResponse("/components", data)
   }
 }
