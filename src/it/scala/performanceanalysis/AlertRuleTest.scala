@@ -5,7 +5,7 @@ import performanceanalysis.base.IntegrationTestBase
 import performanceanalysis.server.Protocol
 
 
-class AlertingRulesTest extends IntegrationTestBase with Protocol {
+class AlertRuleTest extends IntegrationTestBase with Protocol {
 
   feature("Altering rules") {
     scenario("Register an alerting rule") {
@@ -42,5 +42,4 @@ class AlertingRulesTest extends IntegrationTestBase with Protocol {
       registerAlertToFailResponse.statusCode shouldBe 404
     }
   }
-
 }

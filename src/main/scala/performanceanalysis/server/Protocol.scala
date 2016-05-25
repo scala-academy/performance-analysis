@@ -35,6 +35,36 @@ object Protocol {
   case class GetDetails(componentId: String)
 
   /**
+    * Used by Administrator towards AdministratorActor to request AlertRules of a metric of a component
+    */
+  case class GetAlertRules(componentId: String, metricKey: String)
+
+  /**
+    * Used by AdministratorActor to request AlertRules of a component
+    */
+  case class RequestAlertRules(metricKey: String)
+
+  /**
+    * Used by GetAlertsActor to request details from AlertRuleActor
+    */
+  case object RequestAlertRuleDetails
+
+  /**
+    * Used by AlertRuleActor to send its details to GetAlertsActor
+    */
+  case class SingleAlertRuleDetails(alertRule: Rules.AlertRule)
+
+  /**
+    * Used by GetAlertsActor to send the collected AlertRules to AdministratorActor
+    */
+  case class AllAlertRuleDetails(alertRules: Set[Rules.AlertRule])
+
+  /**
+    * Used by LogParserActor to indicate to AdministratorActor that no Alerts are registered for this metric
+    */
+  case class NoAlertsFound(componentId:String, metricKey: String)
+
+  /**
     * Used by Administrator towards AdministratorActor to request a list of all registered components
     */
   case object GetRegisteredComponents
@@ -95,11 +125,10 @@ object Protocol {
   case class MetricNotFound(componentId: String, metricKey: String)
 
   object Rules {
-
     /**
       * Encapsulates a basic alerting rule.
       */
-    case class AlertingRule(threshold: Threshold, action: Action)
+    case class AlertRule(threshold: Threshold, action: Action)
 
     /** Defines threshold of a rule. */
     case class Threshold(max: String) {
@@ -107,18 +136,27 @@ object Protocol {
     }
 
     case class Action(url: String)
-
   }
 
   /**
     * Used by the Administrator towards AdministratorActor to add a new alerting rule.
     */
-  case class RegisterAlertingRule(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+  case class RegisterAlertRule(componentId: String, metricKey: String, rule: Rules.AlertRule)
 
   /**
     * Used by AdministratorActor towards Administrator to indicate that the given rule was successfully created.
     */
-  case class AlertingRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertingRule)
+  case class AlertRuleCreated(componentId: String, metricKey: String, rule: Rules.AlertRule)
+
+  /**
+    * Used by the Administrator towards AdministratorActor to delete all alerting rules
+    */
+  case class DeleteAllAlertingRules(componentId: String, metricKey: String)
+
+  /**
+    * Used by AdministratorActor towards Administrator to indicate that the rules were successfully deleted.
+    */
+  case class AlertRulesDeleted(componentId: String)
 
   /**
     * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.
@@ -155,5 +193,7 @@ trait Protocol extends DefaultJsonProtocol {
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
-  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertingRule.apply)
+  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
+
+  implicit val alertRulesDetailsFormatter = jsonFormat1(AllAlertRuleDetails.apply)
 }
