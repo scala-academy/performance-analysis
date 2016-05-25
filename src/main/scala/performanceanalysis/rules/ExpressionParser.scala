@@ -1,11 +1,11 @@
 package performanceanalysis.rules
 
 import performanceanalysis.rules.ExpressionParser._
+import performanceanalysis.server.Protocol.ValueType
 
 import scala.util.Try
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.CharSequenceReader
-
 
 object ExpressionParser {
 
@@ -20,7 +20,11 @@ object ExpressionParser {
   case object Variable extends Operand
   case class Value(value: String) extends Operand
 
-  case class Expression(left: Operand, operator: Operator, right: Operand)
+  case class Expression(left: Operand, operator: Operator, right: Operand) {
+
+    def evaluate(valueVariable: Any, valueType: ValueType): Boolean =
+      new ExpressionEvaluator {}.evaluate(this, valueVariable, valueType)
+  }
 }
 
 trait ExpressionParser extends RegexParsers {

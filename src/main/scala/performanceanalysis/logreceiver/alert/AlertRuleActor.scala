@@ -1,7 +1,6 @@
 package performanceanalysis.logreceiver.alert
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.rules.ExpressionEvaluator
 import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol._
 
@@ -13,8 +12,7 @@ object AlertRuleActor {
     Props.apply(new AlertRuleActor(alertingRule, componentId, metric) with AlertActionActorCreator)
 }
 
-class AlertRuleActor(alertingRule: AlertRule, componentId: String, metric: Metric) extends Actor
-  with ActorLogging with ExpressionEvaluator {
+class AlertRuleActor(alertingRule: AlertRule, componentId: String, metric: Metric) extends Actor with ActorLogging{
 
   this: AlertActionActorCreator =>
 
@@ -31,7 +29,7 @@ class AlertRuleActor(alertingRule: AlertRule, componentId: String, metric: Metri
   private def doesBreakRule(value: Any) = {
     log.debug("Checking if {} breaks {}", value, alertingRule)
     alertingRule.expression match {
-      case Success(e) => evaluate(e, value, metric.valueType)
+      case Success(e) => e.evaluate(value, metric.valueType)
       case Failure(ex) => false
     }
   }
