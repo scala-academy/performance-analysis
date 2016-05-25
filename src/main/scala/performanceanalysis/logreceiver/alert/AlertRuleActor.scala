@@ -2,18 +2,18 @@ package performanceanalysis.logreceiver.alert
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.rules.ExpressionEvaluator
-import performanceanalysis.server.Protocol.Rules.AlertingRule
-import performanceanalysis.server.Protocol.{Action, CheckRuleBreak, Metric}
+import performanceanalysis.server.Protocol.Rules.AlertRule
+import performanceanalysis.server.Protocol._
 
 import scala.util.{Failure, Success}
 
 object AlertRuleActor {
 
-  def props(alertingRule: AlertingRule, componentId: String, metric: Metric): Props =
+  def props(alertingRule: AlertRule, componentId: String, metric: Metric): Props =
     Props.apply(new AlertRuleActor(alertingRule, componentId, metric) with AlertActionActorCreator)
 }
 
-class AlertRuleActor(alertingRule: AlertingRule, componentId: String, metric: Metric) extends Actor
+class AlertRuleActor(alertingRule: AlertRule, componentId: String, metric: Metric) extends Actor
   with ActorLogging with ExpressionEvaluator {
 
   this: AlertActionActorCreator =>
@@ -24,6 +24,8 @@ class AlertRuleActor(alertingRule: AlertingRule, componentId: String, metric: Me
     case CheckRuleBreak(value) if doesBreakRule(value) =>
       log.info("Rule {} is broken for {}/{}", alertingRule, componentId, metric)
       actionActor ! Action(alertingRule.action.url, alertMessage(value))
+    case RequestAlertRuleDetails =>
+      sender() ! SingleAlertRuleDetails(alertingRule)
   }
 
   private def doesBreakRule(value: Any) = {

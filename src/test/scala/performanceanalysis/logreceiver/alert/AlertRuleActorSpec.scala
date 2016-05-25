@@ -3,7 +3,7 @@ package performanceanalysis.logreceiver.alert
 import akka.actor.{ActorContext, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertingRule, Action => RuleAction}
+import performanceanalysis.server.Protocol.Rules.{AlertRule, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
 import scala.concurrent.duration._
@@ -18,7 +18,7 @@ class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertActionActorProbe = TestProbe("alertActionActor")
     val testProbe = TestProbe("testProbe")
 
-    val rule = AlertingRule("_ > 2000 ms", RuleAction("aUrl"))
+    val rule = AlertRule("_ > 2000 ms", RuleAction("aUrl"))
     val componentId = "aCid"
     val metric = Metric("aMetricKey", "regex", ValueType(classOf[Duration]))
     val alertRuleActor = system.actorOf(Props(new AlertRuleActor(rule, componentId, metric) with TestAlertActionActorCreator))
