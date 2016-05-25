@@ -29,8 +29,12 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetComponents(logParserActors, sender)
     case RegisterMetric(componentId, metric) =>
       handleRegisterMetric(logParserActors, componentId, metric, sender)
-    case msg:RegisterAlertingRule =>
+    case msg:RegisterAlertRule =>
       handleRegisterAlertingRule(logParserActors, msg);
+    case msg:DeleteAllAlertingRules =>
+      handleDeleteAlertingRules(logParserActors, msg)
+    case msg:GetAlertRules =>
+      handleGetAlertRules(logParserActors, msg)
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -69,19 +73,31 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     }
   }
 
+  private def handleGetAlertRules(logParserActors: Map[String, ActorRef], msg: GetAlertRules) = {
+    routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
+      log.debug("Requesting alert rules from {}", ref.path)
+      (ref ? RequestAlertRules(msg.metricKey)) pipeTo sender()
+    }
+  }
+
   private def handleRegisterMetric(logParserActors: Map[String, ActorRef], componentId: String, metric: Metric, sender: ActorRef) = {
     routeToLogParser(logParserActors, componentId, sender) { ref =>
-        log.debug("Sending metric registration to {}", ref.path)
+        log.debug(s"Sending metric registration to {}", ref.path)
         (ref ? metric) pipeTo sender
     }
   }
 
-  private def handleRegisterAlertingRule(logParserActors: Map[String, ActorRef], msg: RegisterAlertingRule) = {
+  private def handleRegisterAlertingRule(logParserActors: Map[String, ActorRef], msg: RegisterAlertRule) = {
     routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
       log.debug("Sending new alerting rule to {}", ref.path)
       (ref ? msg) pipeTo sender()
     }
   }
+
+  private def handleDeleteAlertingRules(logParserActors: Map[String, ActorRef], msg: DeleteAllAlertingRules) = {
+    routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
+      log.debug("Sending rule deletion message to {}", ref.path)
+      (ref ? msg) pipeTo sender()
+    }
+  }
 }
-
-
