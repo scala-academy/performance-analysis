@@ -2,7 +2,8 @@ package performanceanalysis.logreceiver
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.server.Protocol._
-import performanceanalysis.util.Utils.splitIntoLines
+
+import scala.collection.mutable
 
 /**
   * Created by Jordi on 5-4-2016.
@@ -10,12 +11,22 @@ import performanceanalysis.util.Utils.splitIntoLines
 
 object LogReceiverActor {
   def props: Props = Props(new LogReceiverActor)
+
+  /**
+    * This function returns an array of lines. It treats
+    * \r\n, \n, \r as a new line
+    * @param input to be split
+    * @return array of lines
+    */
+  def splitIntoLines(input: String):List[String] = {
+    input.split("[\r\n]+").toList
+  }
 }
 
 class LogReceiverActor extends Actor with ActorLogging {
   private type ComponentId = String
   private type LogParser = ActorRef
-  private var logParsersById: Map[ComponentId, LogParser] = Map()
+  private val logParsersById: mutable.Map[ComponentId, LogParser] = mutable.Map()
 
   def receive: Receive = {
     case SubmitLogs(componentId, logLines) =>
@@ -27,10 +38,10 @@ class LogReceiverActor extends Actor with ActorLogging {
   }
 
   private def handleSubmitLog(compId: ComponentId, logLines: String) = {
+    import LogReceiverActor.splitIntoLines
     logParsersById.get(compId) match {
       case None => sender() ! LogParserNotFound(compId)
       case Some(logParser) =>
-        log.info("Log lines {}", splitIntoLines(logLines))
         splitIntoLines(logLines) foreach { logLine => logParser ! SubmitLog(compId, logLine)}
         sender() ! LogsSubmitted
     }

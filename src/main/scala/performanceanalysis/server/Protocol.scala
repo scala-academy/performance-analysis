@@ -77,12 +77,14 @@ object Protocol {
   /**
     * Used by LogReceiverActor towards LogReceiver to request processing of single log of a component
     */
+  case class SubmitLogs(componentId: String, logLine: String)
   case class SubmitLog(componentId: String, logLine: String)
+  case class Log(logLines: String)
 
   /**
     * Used by LogReceiverActor to signal log submitted
     */
-  case object LogSubmitted
+  case object LogsSubmitted
 
   /**
     * Used by AdministratorActor towards LogParserActor to request its details
@@ -175,4 +177,5 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
 
   implicit val alertRulesDetailsFormatter = jsonFormat1(AllAlertRuleDetails.apply)
+  implicit val logFormatter = jsonFormat1(Log.apply)
 }

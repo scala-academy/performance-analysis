@@ -8,8 +8,6 @@ import com.twitter.finagle.http.{Request, RequestBuilder, Response}
 import com.twitter.io.Bufs._
 import com.twitter.util.Future
 import org.scalatest._
-import org.scalatest.concurrent.PatienceConfiguration._
-import org.scalatest.time.{Millis, Span}
 import performanceanalysis.administrator.Administrator
 import performanceanalysis.logreceiver.LogReceiver
 import performanceanalysis.server.Config
@@ -39,12 +37,6 @@ trait IntegrationTestBase
   }
 
   testMain.main(Array())
-
-  lazy val timeout = 1000
-  lazy val interval = 300
-  override def timeout(value: Span): Timeout = Timeout(Span(timeout, Millis))
-
-  override def interval(value: Span): Interval = Interval(Span(interval, Millis))
 
   val adminServerAddress: InetSocketAddress = Await.result(testMain.administrator.getServerAddress, 10.seconds)
   val adminRequestHost: String = s"localhost:${adminServerAddress.getPort.toString}"
