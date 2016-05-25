@@ -9,24 +9,24 @@ import performanceanalysis.server.Protocol.{LogParserCreated, LogParserExisted, 
   */
 class ProtocolSpec extends SpecBase {
   "Protocol" must {
-    "correctly implements equals for RegisterComponent" in {
+    "correctly implement equals for RegisterComponent" in {
       val registerComponentA = RegisterComponent("Test!")
       val registerComponentB = RegisterComponent("Test!")
       registerComponentA.equals(registerComponentB) shouldBe (true)
     }
 
-    "correctly implements equals for LogParserCreated" in {
+    "correctly implement equals for LogParserCreated" in {
       val logParserCreatedA = LogParserCreated("Created!")
       val logParserCreatedB = LogParserCreated("Kreated!")
       logParserCreatedA.equals(logParserCreatedB) shouldBe (false)
     }
 
-    "correctly implements toString for LogParsedExisted" in {
+    "correctly implement toString for LogParsedExisted" in {
       val logParserExisted = LogParserExisted("Hello!")
       logParserExisted.toString().equals("LogParserExisted(Hello!)") shouldBe (true)
     }
 
-    "correctly implements toString for LogParserNotFound" in {
+    "correctly implement toString for LogParserNotFound" in {
       val logParserNotFound = LogParserNotFound("Not found!")
       logParserNotFound.toString().equals("LogParserNotFound(Found!)") shouldBe (false)
     }
