@@ -8,7 +8,6 @@ import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
