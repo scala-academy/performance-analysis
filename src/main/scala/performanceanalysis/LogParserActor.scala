@@ -3,7 +3,8 @@ package performanceanalysis
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.{AlertingRuleCreated, CheckRuleBreak, _}
+import performanceanalysis.server.InterActorMessage.{CheckRuleBreak, Details}
+import performanceanalysis.server.Protocol.{AlertingRuleCreated, _}
 
 import scala.util.matching.Regex
 

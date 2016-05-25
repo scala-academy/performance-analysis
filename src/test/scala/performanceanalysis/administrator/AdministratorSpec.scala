@@ -7,6 +7,7 @@ import akka.testkit.TestProbe
 import performanceanalysis.base.SpecBase
 import performanceanalysis.server.Protocol.Rules.{Action, AlertingRule, Threshold}
 import performanceanalysis.server.Protocol._
+import performanceanalysis.server.InterActorMessage.Details
 
 /**
   * Created by Jordi on 9-3-2016.

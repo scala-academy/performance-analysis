@@ -5,6 +5,7 @@ import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
+import performanceanalysis.server.InterActorMessage.{CheckRuleBreak, Details}
 import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 

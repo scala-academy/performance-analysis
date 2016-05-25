@@ -5,6 +5,7 @@ import akka.testkit.{TestActor, TestProbe}
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.Protocol.Rules.{AlertingRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
+import performanceanalysis.server.InterActorMessage.Details
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
