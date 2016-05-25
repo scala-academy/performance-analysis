@@ -115,7 +115,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case msg:AllAlertRuleDetails =>
         val entityFuture = Marshal(msg).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
-      case MetricNotFound =>
+      case msg:MetricNotFound =>
         Future(HttpResponse(status = NotFound))
     }
   }

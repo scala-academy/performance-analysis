@@ -79,6 +79,17 @@ class AdministratorSpec extends SpecBase with ScalatestRouteTest {
       }
     }
 
+    "handle a GET on /components/<known componentID>/metrics/<unknown metricKey>/alerting-rules" in new AdministratorWithProbe with TestConstants {
+      val routeTestResult = Get(s"/components/$knownId/metrics/$unknownKey/alerting-rules") ~> routes
+
+      probe.expectMsg(GetAlertRules(knownId, unknownKey))
+      probe.reply(MetricNotFound(knownId, unknownKey))
+
+      routeTestResult ~> check {
+        response.status shouldBe StatusCodes.NotFound
+      }
+    }
+
     "handle a DELETE on /components/<known componentID>/metrics/<known metricKey>/alerting-rules by sending delete message" in
         new AdministratorWithProbe with TestConstants {
       val routeTestResult = Delete(s"/components/$knownId/metrics/$knownKey/alerting-rules") ~> routes
