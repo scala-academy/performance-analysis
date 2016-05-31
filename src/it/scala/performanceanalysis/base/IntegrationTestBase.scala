@@ -113,6 +113,6 @@ trait IntegrationTestBase
 
   def registerComponent(componentId: String): Future[Response] = {
     val data = s"""{"componentId" : "$componentId"}"""
-    adminPostResonse("/components", data)
+    adminPostResponse("/components", data)
   }
 }

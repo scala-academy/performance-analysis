@@ -52,12 +52,16 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
             }
           }
         }
+      } ~ path("logs") {
+        get {
+          log.debug(s"Received GET for loglines for $componentId")
+          complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
+        }
       } ~ get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       }
-    } ~
-      get {
+    } ~ get {
         // Handle GET (get list of all registered components)
         complete(handleGet(administratorActor ? GetRegisteredComponents))
     } ~ post {
