@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, Statu
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import performanceanalysis.server.Protocol.Rules.AlertingRule
+import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{RegisterComponent, _}
 import performanceanalysis.server.Server
 
@@ -27,35 +27,37 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   override protected def componentsRoute: Route = pathPrefix("components") {
     pathPrefix(Segment) { componentId =>
-      get {
+      pathPrefix("metrics") {
+        pathEnd {
+          post {
+            entity(as[Metric]) { metric =>
+              log.debug(s"Received POST on /components/$componentId with entity $metric")
+              complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
+            }
+          }
+        } ~ pathPrefix(Segment) { metricKey =>
+          path("alerting-rules") {
+            post {
+              entity(as[AlertRule]) { rule =>
+                log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
+                complete(handlePost(administratorActor ? RegisterAlertRule(componentId, metricKey, rule)))
+              }
+            } ~ get {
+              // Handle GET of an existing component
+              complete(handleGet(administratorActor ? GetAlertRules(componentId, metricKey)))
+            } ~ delete {
+              // Delete all registered alert rules
+              log.debug("Received DELETE for all rules for {}/{}", componentId, metricKey)
+              complete(handleDelete(administratorActor ? DeleteAllAlertingRules(componentId, metricKey)))
+            }
+          }
+        }
+      } ~ get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
-      } ~ pathPrefix("logs") {
-        get {
-          complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
-        }
-      } ~ pathPrefix("metrics") {
-            post {
-              pathEnd {
-                entity(as[Metric]) { metric =>
-                  log.debug(s"Received POST on /components/$componentId with entity $metric")
-                  complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
-                }
-              } ~ pathPrefix(Segment) { metricKey =>
-
-                    path("alerting-rules") {
-                      entity(as[AlertingRule]) { rule =>
-                        log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
-                        complete(handlePost(administratorActor ? RegisterAlertingRule(componentId, metricKey, rule)))
-                      }
-                    }
-                  }
-            } ~ get {
-                  // Handle GET of an existing component
-                  complete(handleGet(administratorActor ? GetDetails(componentId)))
-                }
-          }
-    } ~ get {
+      }
+    } ~
+      get {
         // Handle GET (get list of all registered components)
         complete(handleGet(administratorActor ? GetRegisteredComponents))
     } ~ post {
@@ -75,10 +77,22 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         ???
       case MetricRegistered(metric) =>
         Future(HttpResponse(status = Created))
-      case msg:AlertingRuleCreated =>
+      case msg:AlertRuleCreated =>
         Future(HttpResponse(status = Created))
       case msg: MetricNotFound =>
         Future(HttpResponse(status = NotFound))
+    }
+  }
+
+  private def handleDelete(resultFuture: Future[Any]): Future[HttpResponse] = {
+    resultFuture.flatMap {
+      case AlertRulesDeleted(componentId) =>
+        log.debug("Successful delete of alert rules for {}", componentId)
+        Future(HttpResponse(status = StatusCodes.NoContent))
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
+      case NoAlertsFound(_, _) =>
+        Future(HttpResponse(status = StatusCodes.NoContent))
     }
   }
 
@@ -97,6 +111,11 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case Details(metrics) =>
         val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
+      case msg:AllAlertRuleDetails =>
+        val entityFuture = Marshal(msg).to[ResponseEntity]
+        toFutureResponse(entityFuture, StatusCodes.OK)
+      case msg:MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
     }
   }
 
