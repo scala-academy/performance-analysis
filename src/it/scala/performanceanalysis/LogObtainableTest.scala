@@ -15,7 +15,7 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
     scenario("Logs posted only at the LogReceiver") {
       Given("the server is running")
       val logLine = "some action took 101 seconds"
-      val componentId: String = "logsObtainableComp"
+      val componentId: String = "logsObtainableCompA"
       val response = registerComponent(componentId)
       whenReady(response, timeout(1 second)) { result =>
         And(s"""I registered component "$componentId"""")
@@ -35,13 +35,13 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         Then("the result should have statuscode 200")
         result.getStatusCode() shouldBe OK.intValue
         And(s"""the content should contain "$logLine"""")
-        result.getContentString() should contain (logLine)
+        result.getContentString().toString should contain (logLine)
       }
     }
     scenario("Logs posted and metrics registered") {
       Given("the server is running")
       val logLine = "some action took 101 seconds"
-      val componentId: String = "logsObtainableComp"
+      val componentId: String = "logsObtainableCompB"
       val response = registerComponent(componentId)
       whenReady(response, timeout(1 second)) { result =>
         And(s"""I registered component "$componentId"""")

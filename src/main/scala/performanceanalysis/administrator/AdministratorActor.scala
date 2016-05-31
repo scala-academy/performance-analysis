@@ -27,6 +27,8 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
       handleGetComponents(logParserActors, sender)
+    case GetComponentLogLines(componentId) =>
+      handleGetComponentLogLines(logParserActors, componentId, sender)
     case RegisterMetric(componentId, metric) =>
       handleRegisterMetric(logParserActors, componentId, metric, sender)
     case msg:RegisterAlertRule =>
@@ -70,6 +72,15 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     routeToLogParser(logParserActors, componentId, sender) { ref =>
       log.debug("Requesting details from {}", ref.path)
       (ref ? RequestDetails) pipeTo sender
+    }
+  }
+
+  private def handleGetComponentLogLines(logParserActors: Map[String, ActorRef],
+                                          componentId: String,
+                                          sender: ActorRef) = {
+    routeToLogParser(logParserActors, componentId, sender) { ref =>
+      log.debug(s"Requesting logLines for $componentId from ${ref.path}")
+      (ref ? RequestComponentLogLines) pipeTo sender
     }
   }
 

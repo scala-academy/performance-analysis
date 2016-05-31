@@ -95,10 +95,17 @@ object Protocol {
   case object RequestDetails
 
   /**
+    * Used by AdministratorActor towards LogParserActor to request its log lines
+    */
+  case object RequestComponentLogLines
+  /**
     * Used by LogParserActor towards AdministratorActor to return its details
     */
   case class Details(metrics: List[Metric])
-
+  /**
+    * Used by LogParserActor towards AdministratorActor to return its log lines
+    */
+  case class ComponentLogLines(logLines: List[String])
   /**
     * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */

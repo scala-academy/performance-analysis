@@ -103,8 +103,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
     def toFutureResponse(entityFuture: Future[ResponseEntity], status: StatusCode) = {
       entityFuture.map {
-        case registeredComponentsEntity =>
-          HttpResponse(status).withEntity(registeredComponentsEntity)
+        case entity =>
+          HttpResponse(status).withEntity(entity)
       }
     }
 
@@ -114,6 +114,9 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         toFutureResponse(entityFuture, StatusCodes.OK)
       case Details(metrics) =>
         val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
+        toFutureResponse(entityFuture, StatusCodes.OK)
+      case ComponentLogLines(logLines) =>
+        val entityFuture = Marshal(logLines).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
       case msg:AllAlertRuleDetails =>
         val entityFuture = Marshal(msg).to[ResponseEntity]
