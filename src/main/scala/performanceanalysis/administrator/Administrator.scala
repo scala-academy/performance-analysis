@@ -39,7 +39,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
           pathEnd {
             get {
               log.debug(s"Received GET for log lines for $componentId with metric $metricKey")
-              complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
+              complete(handleGet(administratorActor ? GetParsedLogLines(componentId, metricKey)))
             }
           } ~ path("alerting-rules") {
             post {
@@ -120,9 +120,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case Details(metrics) =>
         val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
-      case ComponentLogLines(logLines) =>
-        val entityFuture = Marshal(logLines).to[ResponseEntity]
-        toFutureResponse(entityFuture, StatusCodes.OK)
+      case ComponentLogLines(lines) =>
+        Future(HttpResponse(status = StatusCodes.OK).withEntity(lines mkString " "))
       case msg:AllAlertRuleDetails =>
         val entityFuture = Marshal(msg).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)

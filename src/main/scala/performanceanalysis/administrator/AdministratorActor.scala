@@ -29,6 +29,8 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetComponents(logParserActors, sender)
     case GetComponentLogLines(componentId) =>
       handleGetComponentLogLines(logParserActors, componentId, sender)
+    case GetParsedLogLines(componentId, metricKey) =>
+      handleGetParsedLogLines(logParserActors, componentId, metricKey, sender)
     case RegisterMetric(componentId, metric) =>
       handleRegisterMetric(logParserActors, componentId, metric, sender)
     case msg:RegisterAlertRule =>
@@ -81,6 +83,16 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     routeToLogParser(logParserActors, componentId, sender) { ref =>
       log.debug(s"Requesting logLines for $componentId from ${ref.path}")
       (ref ? RequestComponentLogLines) pipeTo sender
+    }
+  }
+
+  private def handleGetParsedLogLines(logParserActors: Map[String, ActorRef],
+                                      componentId: String,
+                                      metricKey: String,
+                                      sender: ActorRef) = {
+    routeToLogParser(logParserActors, componentId, sender) { ref =>
+      log.debug(s"Requesting parsed logLines for $componentId and $metricKey from ${ref.path}")
+      (ref ? RequestParsedLogLines(metricKey)) pipeTo sender
     }
   }
 

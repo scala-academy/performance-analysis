@@ -40,6 +40,10 @@ object Protocol {
   case class GetComponentLogLines(componentId: String)
 
   /**
+    * Used by the Administrator to request parsed logLines for a component and metricKey
+    */
+  case class GetParsedLogLines(componentId: String, metricKey: String)
+  /**
     * Used by Administrator towards AdministratorActor to request AlertRules of a metric of a component
     */
   case class GetAlertRules(componentId: String, metricKey: String)
@@ -98,6 +102,11 @@ object Protocol {
     * Used by AdministratorActor towards LogParserActor to request its log lines
     */
   case object RequestComponentLogLines
+
+  /**
+    * Used by AdministratorActor towards LogParserActor to request its parsed log lines
+    */
+  case class RequestParsedLogLines(metricKey: String)
   /**
     * Used by LogParserActor towards AdministratorActor to return its details
     */

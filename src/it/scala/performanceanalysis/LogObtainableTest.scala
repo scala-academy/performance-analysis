@@ -22,8 +22,7 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         result.getStatusCode() shouldBe Created.intValue
       }
       val logPath = s"/components/$componentId/logs"
-      val logData = s"""{"logline" : "$logLine"}"""
-      val logResponse = logReceiverPostResponse(logPath, logData)
+      val logResponse = logReceiverPostResponse(logPath, logLine)
       whenReady(logResponse, timeout(1 second)) { result =>
         And(s"""I posted a logline "$logLine" on this component""")
         result.getStatusCode() shouldBe Accepted.intValue
@@ -35,7 +34,7 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         Then("the result should have statuscode 200")
         result.getStatusCode() shouldBe OK.intValue
         And(s"""the content should contain "$logLine"""")
-        result.getContentString().toString should contain (logLine)
+        result.getContentString() shouldBe (logLine)
       }
     }
     scenario("Logs posted and metrics registered") {
@@ -55,8 +54,7 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         result.getStatusCode() shouldBe Created.intValue
       }
       val logPath = s"/components/$componentId/logs"
-      val logData = s"""{"logline" : "$logLine"}"""
-      val logResponse = logReceiverPostResponse(logPath, logData)
+      val logResponse = logReceiverPostResponse(logPath, logLine)
       whenReady(logResponse, timeout(1 second)) { result =>
         result.getStatusCode() shouldBe Accepted.intValue
         And(s"""I posted a logline "$logLine" on this component""")
@@ -69,7 +67,7 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         Then("the result should have statuscode 200")
         result.getStatusCode() shouldBe OK.intValue
         And("""the content should contain "101"""")
-        result.getContentString() should contain ("101")
+        result.getContentString() shouldBe ("101")
       }
     }
   }

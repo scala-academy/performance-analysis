@@ -33,6 +33,10 @@ class LogParserActor extends Actor with ActorLogging {
       log.debug("received request for loglines")
       sender() ! ComponentLogLines(logLines)
 
+    case RequestParsedLogLines(metricKey) =>
+      log.debug("received request for parsed loglines")
+      handleGetParsedLogLines(metrics, logLines, metricKey)
+
     case RequestAlertRules(metricKey) =>
       log.debug("received request for alert rules of {}", metricKey)
       handleGetAlertRules(metrics, alertsByMetricKey, metricKey)
@@ -98,6 +102,19 @@ class LogParserActor extends Actor with ActorLogging {
           case Some(ruleList) =>
             context.actorOf(GetAlertsActor.props(ruleList, sender()))
         }
+    }
+  }
+
+  private def handleGetParsedLogLines(metrics: List[Metric], logLines: List[String], metricKey: String) = {
+    findMetric(metricKey, metrics) match {
+      case None =>
+        sender() ! MetricNotFound
+      case Some(metric) =>
+        val lines = logLines.map(line => {
+          val pattern: Regex = metric.regex.r
+          pattern.findFirstIn(line).getOrElse("")
+        })
+        sender() ! ComponentLogLines(lines)
     }
   }
 
