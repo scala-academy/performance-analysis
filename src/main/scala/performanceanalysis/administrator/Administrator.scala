@@ -36,7 +36,12 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
             }
           }
         } ~ pathPrefix(Segment) { metricKey =>
-          path("alerting-rules") {
+          pathEnd {
+            get {
+              log.debug(s"Received GET for log lines for $componentId with metric $metricKey")
+              complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
+            }
+          } ~ path("alerting-rules") {
             post {
               entity(as[AlertRule]) { rule =>
                 log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
