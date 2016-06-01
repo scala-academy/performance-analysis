@@ -30,7 +30,7 @@ class AlertRuleAdministrationTest extends IntegrationTestBase with Protocol {
         """{"regex" : "\\d+\\sms", "metric-key" : "a-metric", "value-type": "duration"}""")
       registerMetricResponse.statusCode shouldBe 201
 
-      val alertPayload = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
+      val alertPayload = """{"when": "_ < 2000 ms", "action": {"url": "dummy-action"}}"""
       And("I registered an AlertRule")
       val registerAlertResponse = awaitAdminPostResponse("/components/comp/metrics/a-metric/alerting-rules",
         alertPayload)
@@ -54,7 +54,7 @@ class AlertRuleAdministrationTest extends IntegrationTestBase with Protocol {
         """{"regex" : "\\d+\\sms", "metric-key" : "a-metric", "value-type": "duration"}""")
       registerMetricResponse.statusCode shouldBe 201
 
-      val alertPayload = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
+      val alertPayload = """{"when": "_ < 2000 ms", "action": {"url": "dummy-action"}}"""
 
       And("I registered an AlertRule")
       val registerAlertResponse = awaitAdminPostResponse("/components/comp2/metrics/a-metric/alerting-rules", alertPayload)

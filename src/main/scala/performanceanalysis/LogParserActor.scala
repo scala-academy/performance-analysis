@@ -62,7 +62,7 @@ class LogParserActor extends Actor with ActorLogging {
       findMetric(metricKey, metrics) match {
         case None => sender() ! MetricNotFound(compId, metricKey)
         case Some(metric) =>
-          val newAlertActorRef = create(context, rule, compId, metricKey)
+          val newAlertActorRef = create(context, rule, compId, metric)
           context.become(normal(metrics, logLines, updateAlertsByMetricKey(alertsByMetricKey, newAlertActorRef, metricKey)))
           sender() ! AlertRuleCreated(compId, metricKey, rule)
       }

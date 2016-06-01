@@ -1,10 +1,13 @@
 package performanceanalysis.server
 
 import akka.actor.ActorRef
+import performanceanalysis.rules.ExpressionParser
+import performanceanalysis.rules.ExpressionParser.Expression
 import performanceanalysis.server.Protocol._
 import spray.json._
 
 import scala.concurrent.duration.Duration
+import scala.util.Try
 
 object Protocol {
 
@@ -149,11 +152,8 @@ object Protocol {
     /**
       * Encapsulates a basic alerting rule.
       */
-    case class AlertRule(threshold: Threshold, action: Action)
-
-    /** Defines threshold of a rule. */
-    case class Threshold(max: String) {
-      def limit: Duration = Duration(max)
+    case class AlertRule(when: String, action: Action) {
+      def expression: Try[Expression] = new ExpressionParser {}.parse(when)
     }
 
     case class Action(url: String)
@@ -212,7 +212,6 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
 
-  implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
   implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
   implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
 

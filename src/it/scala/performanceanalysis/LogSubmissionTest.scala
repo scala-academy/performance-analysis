@@ -39,7 +39,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
       awaitAdminPostResponse(metricPath, data).statusCode shouldBe Created.intValue
 
       val registerAlertRule = s"/components/$componentId/metrics/$metricKey/alerting-rules"
-      val rule = """{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}"""
+      val rule = """{"when": "_ > 2000 ms", "action": {"url": "dummy-action"}}"""
 
       And(s"also registered a alerting rule $rule to $registerAlertRule on the Administrator port")
       awaitAdminPostResponse(registerAlertRule, rule).statusCode shouldBe Created.intValue

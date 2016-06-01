@@ -5,10 +5,11 @@ import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
+import performanceanalysis.server.Protocol.Rules.{AlertRule, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
 import scala.concurrent.duration._
+import scala.concurrent.duration.{Duration, _}
 import scala.language.postfixOps
 
 
@@ -20,10 +21,10 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertRule1ActorProbe = TestProbe("alertRule1Actor")
     val alertRule2ActorProbe = TestProbe("alertRule2Actor")
     val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
-    val alertingRule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
+    val alertingRule = AlertRule("_ < 2000 ms", RuleAction("aUrl"))
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
-      override def create(context: ActorContext, rule: AlertRule, componentId: String, metricKey: String): ActorRef = {
+      override def create(context: ActorContext, rule: AlertRule, componentId: String, metric: Metric): ActorRef = {
         rule match {
           case AlertRule(_, RuleAction("aUrlForRule1")) => alertRule1ActorProbe.ref
           case AlertRule(_, RuleAction("aUrlForRule2")) => alertRule2ActorProbe.ref
@@ -50,8 +51,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
   trait TestSetupWithMetricRegistered extends TestSetup {
 
     def alertingRule(ruleAction: String): AlertRule = {
-      val someThreshold: Threshold = Threshold("1800 ms")
-      AlertRule(someThreshold, RuleAction(ruleAction))
+      AlertRule("_ < 1800 ms", RuleAction(ruleAction))
     }
 
     sendMetricAndAssertResponse(Metric(metricKey1, """(\d+ ms)""", ValueType(classOf[Duration]))) //good regex
@@ -59,8 +59,8 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
   }
 
   trait TestSetupWithAlertsRegistered extends TestSetupWithMetricRegistered {
-    val rules = List(AlertRule(Threshold("2001 ms"), RuleAction("aUrlForRule1")),
-      AlertRule(Threshold("2002 ms"), RuleAction("aUrlForRule2")))
+    val rules = List(AlertRule("_ < 2001 ms", RuleAction("aUrlForRule1")),
+      AlertRule("_ < 2002 ms", RuleAction("aUrlForRule2")))
     for (rule <- rules) {
       registerAlertRule(metricKey1, rule)
     }
