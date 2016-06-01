@@ -5,6 +5,7 @@ import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{AlertRuleCreated, CheckRuleBreak, _}
+
 import scala.util.matching.Regex
 
 /**
@@ -13,6 +14,7 @@ import scala.util.matching.Regex
 object LogParserActor {
 
   type MetricKey = String
+
   def props: Props = Props(new LogParserActor() with AlertRuleActorCreator)
 }
 
@@ -70,13 +72,15 @@ class LogParserActor extends Actor with ActorLogging {
        metrics: List[Metric],
        alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]]) {
     log.debug("received {} in {}", msg, self.path)
-    for {
-      metric <- metrics
-      value <- parseLogLine(msg.logLine, metric)
-      alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
-    } {
-      log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
-      alertRuleActorRef ! CheckRuleBreak(value)
+    metrics.foreach { metric =>
+      val parseResult = parseLogLine(msg.logLine, metric)
+      for {
+        value <- parseResult.metric
+        alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
+      } {
+        log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
+        alertRuleActorRef ! CheckRuleBreak(value)
+      }
     }
   }
 
@@ -114,8 +118,10 @@ class LogParserActor extends Actor with ActorLogging {
     }
   }
 
-  private def parseLogLine(logLine: String, metric: Metric):Option[String] = {
+  private def parseLogLine(logLine: String, metric: Metric): ParsedLine = {
     val pattern: Regex = metric.regex.r
-    pattern.findFirstMatchIn(logLine).filter(_.groupCount >= 1).map(_  group 1)
+    val parser = LineParser(pattern)
+    parser.parse(logLine)
   }
+
 }
