@@ -1,11 +1,13 @@
 package performanceanalysis
 
-import akka.actor.{ActorContext, ActorRef, ActorSystem}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.Protocol
-import performanceanalysis.server.Protocol.Rules.{Action => RuleAction, AlertRule, Threshold}
+import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold}
 import performanceanalysis.server.Protocol._
+
+import scala.concurrent.duration._
 
 class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
 
@@ -43,6 +45,28 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       ruleActorProbe2.reply(SingleAlertRuleDetails(alertRule2))
 
       senderProbe.expectMsg(AllAlertRuleDetails(Set[AlertRule](alertRule1, alertRule2)))
+      senderProbe.expectTerminated(ref)
+    }
+
+    "send result back if after 2 seconds not every actor has responded" in {
+      val senderProbe = TestProbe()
+      val ruleActorProbe1 = TestProbe()
+      val ruleActorProbe2 = TestProbe()
+      val rules = List[ActorRef](ruleActorProbe1.testActor, ruleActorProbe2.testActor)
+
+      val ref = TestActorRef(new GetAlertsActor(rules, senderProbe.testActor))
+
+      senderProbe.watch(ref)
+
+      val alertRule1 = AlertRule(Threshold("max"), Protocol.Rules.Action("url1"))
+      ruleActorProbe1.expectMsg(RequestAlertRuleDetails)
+      ruleActorProbe1.reply(SingleAlertRuleDetails(alertRule1))
+
+      senderProbe.expectNoMsg()
+
+      ruleActorProbe2.expectMsg(RequestAlertRuleDetails)
+
+      senderProbe.expectMsg(5.seconds, AllAlertRuleDetails(Set[AlertRule](alertRule1)))
       senderProbe.expectTerminated(ref)
     }
   }
