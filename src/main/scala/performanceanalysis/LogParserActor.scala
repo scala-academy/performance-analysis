@@ -57,15 +57,19 @@ class LogParserActor extends Actor with ActorLogging {
       handleDeleteRules(msg)
 
     case RegisterAlertRule(compId, metricKey, rule) =>
-      log.debug("received new alert rule {} in {}", rule, self.path)
+      handleRegisterAlertRule(compId, metricKey, rule)
+  }
 
-      findMetric(metricKey) match {
-        case None => sender() ! MetricNotFound(compId, metricKey)
-        case Some(metric) =>
-          val newAlertActorRef = create(context, rule, compId, metricKey)
-          updateAlertsByMetricKey(newAlertActorRef, metricKey)
-          sender() ! AlertRuleCreated(compId, metricKey, rule)
-      }
+  private def handleRegisterAlertRule(compId: String, metricKey: String, rule: AlertRule): Unit = {
+    log.debug("received new alert rule {} in {}", rule, self.path)
+
+    findMetric(metricKey) match {
+      case None => sender() ! MetricNotFound(compId, metricKey)
+      case Some(metric) =>
+        val newAlertActorRef = create(context, rule, compId, metricKey)
+        updateAlertsByMetricKey(newAlertActorRef, metricKey)
+        sender() ! AlertRuleCreated(compId, metricKey, rule)
+    }
   }
 
   private def findMetric(metricKey: MetricKey):Option[Metric] = {
