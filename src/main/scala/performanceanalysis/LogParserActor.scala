@@ -5,8 +5,8 @@ import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{AlertRuleCreated, CheckRuleBreak, _}
-import scala.collection.mutable
 import scala.util.matching.Regex
+import scala.collection.mutable
 import scala.collection.mutable.{Map => MutableMap}
 
 
@@ -16,6 +16,7 @@ import scala.collection.mutable.{Map => MutableMap}
 object LogParserActor {
 
   type MetricKey = String
+
   def props: Props = Props(new LogParserActor() with AlertRuleActorCreator)
 }
 
@@ -24,12 +25,21 @@ class LogParserActor extends Actor with ActorLogging {
   private type AlertRuleActorRef = ActorRef
 
   private val metrics = mutable.MutableList[Metric]()
+  private val logLines = mutable.MutableList[String]()
   private val alertsByMetricKey = MutableMap[MetricKey, List[AlertRuleActorRef]]()
 
   def receive: Receive = {
     case RequestDetails =>
       log.debug("received request for details")
       sender() ! Details(metrics.toList)
+
+    case RequestComponentLogLines =>
+      log.debug("received request for loglines")
+      sender() ! ComponentLogLines(logLines.toList)
+
+    case RequestParsedLogLines(metricKey) =>
+      log.debug("received request for parsed loglines")
+      handleGetParsedLogLines(metricKey)
 
     case RequestAlertRules(metricKey) =>
       log.debug("received request for alert rules of {}", metricKey)
@@ -68,9 +78,10 @@ class LogParserActor extends Actor with ActorLogging {
 
   private def handleSubmitLog(msg: SubmitLog) {
     log.debug("received {} in {}", msg, self.path)
+    logLines += msg.logLine
     for {
       metric <- metrics
-      value <- parseLogLine(msg.logLine, metric)
+      value <- parseLogLine(msg.logLine, metric).metric
       alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
     } {
       log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
@@ -92,8 +103,20 @@ class LogParserActor extends Actor with ActorLogging {
     }
   }
 
-  private def handleDeleteRules(msg: DeleteAllAlertingRules) = {
-    log.debug("received delete request for all rules on metric {}", msg.metricKey)
+  private def handleGetParsedLogLines(metricKey: String) = {
+    findMetric(metricKey) match {
+      case None =>
+        sender() ! MetricNotFound
+      case Some(metric) =>
+        val lines = logLines.map(line => {
+          val pattern: Regex = metric.regex.r
+          pattern.findFirstIn(line).getOrElse("")
+        })
+        sender() ! ComponentLogLines(lines.toList)
+    }
+  }
+
+  private def handleDeleteRules(msg: DeleteAllAlertingRules) = {  log.debug("received delete request for all rules on metric {}", msg.metricKey)
     findMetric(msg.metricKey) match {
       case None =>
         sender() ! MetricNotFound(msg.componentId, msg.metricKey)
@@ -112,8 +135,9 @@ class LogParserActor extends Actor with ActorLogging {
     }
   }
 
-  private def parseLogLine(logLine: String, metric: Metric):Option[String] = {
+  private def parseLogLine(logLine: String, metric: Metric): ParsedLine = {
     val pattern: Regex = metric.regex.r
-    pattern.findFirstMatchIn(logLine).filter(_.groupCount >= 1).map(_  group 1)
+    val parser = LineParser(pattern)
+    parser.parse(logLine)
   }
 }
