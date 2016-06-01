@@ -18,11 +18,14 @@ class GetAlertsActor(alertActors: List[ActorRef], originalSender: ActorRef) exte
 
   import context.dispatcher
 
+  // Private so that only this actor can send this message
+  private case object Timeout
+
   for (alertActor <- alertActors) {
     alertActor ! RequestAlertRuleDetails
   }
 
-  context.system.scheduler.scheduleOnce(GetAlertsActor.timeOut, self, "timeout")
+  context.system.scheduler.scheduleOnce(GetAlertsActor.timeOut, self, Timeout)
 
   private def sendAndStop(ruleSet: Set[AlertRule]) = {
     originalSender ! AllAlertRuleDetails(ruleSet)
@@ -30,7 +33,7 @@ class GetAlertsActor(alertActors: List[ActorRef], originalSender: ActorRef) exte
   }
 
   def normal(ruleSet: Set[AlertRule], countdown:Int): Receive = {
-    case "timeout" =>
+    case Timeout =>
       log.debug("Timeout! Sending results so far to {}", originalSender)
       sendAndStop(ruleSet)
     case SingleAlertRuleDetails(alertRule) =>
