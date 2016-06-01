@@ -36,7 +36,12 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
             }
           }
         } ~ pathPrefix(Segment) { metricKey =>
-          path("alerting-rules") {
+          pathEnd {
+            get {
+              log.debug(s"Received GET for log lines for $componentId with metric $metricKey")
+              complete(handleGet(administratorActor ? GetParsedLogLines(componentId, metricKey)))
+            }
+          } ~ path("alerting-rules") {
             post {
               entity(as[AlertRule]) { rule =>
                 log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
@@ -52,22 +57,25 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
             }
           }
         }
+      } ~ path("logs") {
+        get {
+          log.debug(s"Received GET for loglines for $componentId")
+          complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
+        }
       } ~ get {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       }
-    } ~
-      get {
+    } ~ get {
         // Handle GET (get list of all registered components)
         complete(handleGet(administratorActor ? GetRegisteredComponents))
-      } ~
-      post {
+    } ~ post {
         // Handle POST (registration of a new component)
         entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
           log.debug(s"Received POST on /components with entity $registerComponent")
           complete(handlePost(administratorActor ? registerComponent))
         }
-      }
+    }
   }
 
   private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
@@ -100,8 +108,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
   private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
     def toFutureResponse(entityFuture: Future[ResponseEntity], status: StatusCode) = {
       entityFuture.map {
-        case registeredComponentsEntity =>
-          HttpResponse(status).withEntity(registeredComponentsEntity)
+        case entity =>
+          HttpResponse(status).withEntity(entity)
       }
     }
 
@@ -112,6 +120,8 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
       case Details(metrics) =>
         val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
+      case ComponentLogLines(lines) =>
+        Future(HttpResponse(status = StatusCodes.OK).withEntity(lines mkString " "))
       case msg:AllAlertRuleDetails =>
         val entityFuture = Marshal(msg).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
