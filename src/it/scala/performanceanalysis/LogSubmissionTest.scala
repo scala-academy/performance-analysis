@@ -28,7 +28,7 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
 
       val componentId: String = "parsingConfiguredComponent"
       And(s"registered a component with id $componentId")
-      registerComponent(componentId).statusCode shouldBe Created.intValue
+      awaitRegisterComponent(componentId).getStatusCode() shouldBe Created.intValue
 
       val metricPath = s"/components/$componentId/metrics"
       val metricKey = "aKey"
