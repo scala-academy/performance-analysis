@@ -37,7 +37,7 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       Given("the server is running")
 
       And("""I registered a component with id "parsConfigComp"""")
-      registerComponent("parsConfigComp")
+      awaitRegisterComponent("parsConfigComp")
 
       When("""I do a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp/metrics on the Administrator port""")
       val path = "/components/parsConfigComp/metrics"
@@ -53,7 +53,7 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
       Given("the server is running")
 
       And("""I registered a component with id "parsConfigComp"""")
-      registerComponent("parsConfigComp2")
+      awaitRegisterComponent("parsConfigComp2")
 
       When("""And I did a POST with {"regex" : "+d", "metric-key" : "a-numerical-metric"} to /components/parsConfigComp2/metrics on the Administrator port""")
       val path = "/components/parsConfigComp2/metrics"
