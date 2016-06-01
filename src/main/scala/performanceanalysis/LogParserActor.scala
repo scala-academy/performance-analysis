@@ -6,6 +6,7 @@ import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{AlertRuleCreated, CheckRuleBreak, _}
 import scala.util.matching.Regex
+import scala.collection.mutable.{Map => MutableMap}
 
 /**
   * Created by m06f791 on 25-3-2016.
@@ -21,7 +22,7 @@ class LogParserActor extends Actor with ActorLogging {
   private type AlertRuleActorRef = ActorRef
 
   private var metrics = List[Metric]()
-  private var alertsByMetricKey = Map[MetricKey, List[AlertRuleActorRef]]()
+  private val alertsByMetricKey = MutableMap[MetricKey, List[AlertRuleActorRef]]()
 
   def receive: Receive = {
     case RequestDetails =>
@@ -60,7 +61,7 @@ class LogParserActor extends Actor with ActorLogging {
   }
 
   private def updateAlertsByMetricKey(newAlertRuleActorRef: AlertRuleActorRef, key: MetricKey) = {
-    alertsByMetricKey = alertsByMetricKey + (key -> (newAlertRuleActorRef :: alertsByMetricKey.getOrElse(key, Nil)))
+    alertsByMetricKey += (key -> (newAlertRuleActorRef :: alertsByMetricKey.getOrElse(key, Nil)))
   }
 
   private def handleSubmitLog(msg: SubmitLog) {
@@ -103,7 +104,7 @@ class LogParserActor extends Actor with ActorLogging {
               context.stop(ruleActor)
             }
 
-            alertsByMetricKey = alertsByMetricKey - msg.metricKey
+            alertsByMetricKey -= msg.metricKey
             sender() ! AlertRulesDeleted(msg.componentId)
         }
     }
