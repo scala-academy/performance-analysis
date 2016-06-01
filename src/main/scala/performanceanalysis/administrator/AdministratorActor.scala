@@ -2,7 +2,9 @@ package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages.{DeleteAllAlertingRules, GetAlertRules, RegisterAlertRule, RequestAlertRules}
+import performanceanalysis.server.messages.LogMessages.{Metric, RegisterMetric, RegisterNewLogParser, RequestDetails}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

@@ -1,7 +1,8 @@
 package performanceanalysis.logreceiver
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages.LogParserNotFound
+import performanceanalysis.server.messages.LogMessages._
 
 /**
   * Created by Jordi on 5-4-2016.

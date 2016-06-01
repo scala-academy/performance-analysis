@@ -5,8 +5,9 @@ import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.LogMessages._
+import performanceanalysis.server.messages.Rules.{AlertRule, Threshold, Action => RuleAction}
 
 class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
   def this() = this(ActorSystem("LogParserActorSpec"))

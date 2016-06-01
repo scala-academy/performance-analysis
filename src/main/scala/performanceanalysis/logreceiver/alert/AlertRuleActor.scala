@@ -1,8 +1,8 @@
 package performanceanalysis.logreceiver.alert
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.server.Protocol.Rules.AlertRule
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules.AlertRule
 
 import scala.concurrent.duration._
 

@@ -1,10 +1,12 @@
 package performanceanalysis.administrator
 
 import akka.actor._
-import akka.testkit.{TestActor, TestProbe}
+import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages.{AlertRuleCreated, AlertRulesDeleted, DeleteAllAlertingRules, RegisterAlertRule}
+import performanceanalysis.server.messages.LogMessages.{Details, RegisterNewLogParser, RequestDetails}
+import performanceanalysis.server.messages.Rules.{AlertRule, Threshold, Action => RuleAction}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 

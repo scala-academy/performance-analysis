@@ -3,8 +3,8 @@ package performanceanalysis.logreceiver.alert
 import akka.actor.{ActorContext, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules.{AlertRule, Threshold, Action => RuleAction}
 
 
 class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
