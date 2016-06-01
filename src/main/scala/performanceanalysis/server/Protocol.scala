@@ -38,6 +38,15 @@ object Protocol {
   case class GetDetails(componentId: String)
 
   /**
+    * Used by the Administrator to request all posted logLines for a component
+    */
+  case class GetComponentLogLines(componentId: String)
+
+  /**
+    * Used by the Administrator to request parsed logLines for a component and metricKey
+    */
+  case class GetParsedLogLines(componentId: String, metricKey: String)
+  /**
     * Used by Administrator towards AdministratorActor to request AlertRules of a metric of a component
     */
   case class GetAlertRules(componentId: String, metricKey: String)
@@ -93,10 +102,22 @@ object Protocol {
   case object RequestDetails
 
   /**
+    * Used by AdministratorActor towards LogParserActor to request its log lines
+    */
+  case object RequestComponentLogLines
+
+  /**
+    * Used by AdministratorActor towards LogParserActor to request its parsed log lines
+    */
+  case class RequestParsedLogLines(metricKey: String)
+  /**
     * Used by LogParserActor towards AdministratorActor to return its details
     */
   case class Details(metrics: List[Metric])
-
+  /**
+    * Used by LogParserActor towards AdministratorActor to return its log lines
+    */
+  case class ComponentLogLines(logLines: List[String])
   /**
     * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
