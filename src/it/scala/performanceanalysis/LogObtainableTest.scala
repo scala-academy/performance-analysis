@@ -47,7 +47,7 @@ class LogObtainableTest extends IntegrationTestBase with ScalaFutures with Twitt
         result.getStatusCode() shouldBe Created.intValue
       }
       val metricsPath = s"/components/$componentId/metrics"
-      val metricsData = """{"regex" : "\\d+", "metric-key" : "a-numerical-metric"}"""
+      val metricsData = """{"regex" : "\\d+", "metric-key" : "a-numerical-metric", "value-type": "duration"}"""
       val metricsResponse = adminPostResponse(metricsPath, metricsData)
       whenReady(metricsResponse, timeout(1 second)) { result =>
         And("""with a metric with metric-key "a-numerical-metric"""")
