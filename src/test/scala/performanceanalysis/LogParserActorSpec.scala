@@ -8,6 +8,10 @@ import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
 
+import scala.concurrent.duration._
+import scala.language.postfixOps
+
+
 class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
   def this() = this(ActorSystem("LogParserActorSpec"))
 
@@ -16,6 +20,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val alertRule1ActorProbe = TestProbe("alertRule1Actor")
     val alertRule2ActorProbe = TestProbe("alertRule2Actor")
     val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
+    val alertingRule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
       override def create(context: ActorContext, rule: AlertRule, componentId: String, metricKey: String): ActorRef = {
@@ -26,6 +31,16 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
         }
       }
     }
+
+    def sendMetricAndAssertResponse(metric: Metric): Unit = {
+      logParserActorRef ! metric
+      expectMsg(MetricRegistered(metric))
+    }
+
+    def registerAlertRule(key: MetricKey, rule : AlertRule):Unit = {
+      logParserActorRef ! RegisterAlertRule("aCid", key, rule)
+      expectMsg(AlertRuleCreated("aCid", key, rule))
+    }
   }
 
   val componentId = "cid"
@@ -33,23 +48,14 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
   val metricKey2: MetricKey = "aMetricKey2"
 
   trait TestSetupWithMetricRegistered extends TestSetup {
-    def sendMetricAndAssertResponse(metric: Metric): Unit = {
-      logParserActorRef ! metric
-      expectMsg(MetricRegistered(metric))
-    }
-
-    def registerAlertRule(key: MetricKey, rule : AlertRule):Unit = {
-      logParserActorRef ! RegisterAlertRule(componentId, key, rule)
-      expectMsg(AlertRuleCreated(componentId, key, rule))
-    }
 
     def alertingRule(ruleAction: String): AlertRule = {
       val someThreshold: Threshold = Threshold("1800 ms")
       AlertRule(someThreshold, RuleAction(ruleAction))
     }
 
-    sendMetricAndAssertResponse(Metric(metricKey1, """(\d+ ms)""")) //good regex
-    sendMetricAndAssertResponse(Metric(metricKey2, """\d+ ms""")) //group doesn't exist, so it is bad regex
+    sendMetricAndAssertResponse(Metric(metricKey1, """(\d+ ms)""", ValueType(classOf[Duration]))) //good regex
+    sendMetricAndAssertResponse(Metric(metricKey2, """\d+ ms""", ValueType(classOf[Duration]))) //group doesn't exist, so it is bad regex
   }
 
   trait TestSetupWithAlertsRegistered extends TestSetupWithMetricRegistered {
@@ -80,7 +86,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     }
 
     "send message MetricNotFound when no metric for given alerting rule found" in new TestSetup {
-      logParserActorRef ! RegisterAlertRule(componentId, metricKey1, AlertRule(Threshold("2000 ms"), RuleAction("aUrl")))
+      logParserActorRef ! RegisterAlertRule(componentId, metricKey1, alertingRule)
       expectMsg(MetricNotFound(componentId, metricKey1))
     }
 
@@ -93,47 +99,68 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       registerAlertRule(metricKey2, alertingRule("aUrlForRule2"))
 
       logParserActorRef ! SubmitLog(componentId, "some action took 2000 ms")
-      alertRule1ActorProbe.expectMsg(CheckRuleBreak("2000 ms"))
+      alertRule1ActorProbe.expectMsg(CheckRuleBreak(2000 millis))
       //regular expression is not matching, so rule should not get message
       alertRule2ActorProbe.expectNoMsg()
     }
 
-    "send MetricNotFound when requesting details of non-existing metric" in new TestSetupWithMetricRegistered {
-      logParserActorRef ! RequestAlertRules("notAMetricKey")
-      expectMsg(MetricNotFound)
+    "parse log with boolean metric" in new TestSetup {
+      val metric = Metric("key-with-error", "(ERROR)", ValueType(classOf[Boolean]))
+      sendMetricAndAssertResponse(metric)
+
+      registerAlertRule(metric.metricKey, alertingRule)
+
+      // submit a log with ERROR in it
+      logParserActorRef ! SubmitLog("aCid", "log line with ERROR in it")
+      defaultAlertRuleActorProbe.expectMsg(CheckRuleBreak(true))
     }
 
-    "forward RequestAlertRuleDetails messages to AlertRuleActors when requesting alert rules" in new TestSetupWithAlertsRegistered {
-      logParserActorRef ! RequestAlertRules(metricKey1)
+    "parse log with boolean metric when no match should not trigger a message to AlertRuleActor" in new TestSetup {
+      val metric = Metric("key-with-no-error", "(ERROR)", ValueType(classOf[Boolean]))
+      sendMetricAndAssertResponse(metric)
 
-      alertRule1ActorProbe.expectMsg(RequestAlertRuleDetails)
-      alertRule2ActorProbe.expectMsg(RequestAlertRuleDetails)
+      registerAlertRule(metric.metricKey, alertingRule)
 
-      expectNoMsg()
+      logParserActorRef ! SubmitLog("aCid", "log line with INFO in it")
+      defaultAlertRuleActorProbe.expectNoMsg
     }
+  }
 
-    "reply MetricNotFound when deleting alert rules of a non-existing metric" in new TestSetupWithAlertsRegistered {
-      logParserActorRef ! DeleteAllAlertingRules(componentId, "notAMetricKey")
-      expectMsg(MetricNotFound(componentId, "notAMetricKey"))
-    }
+  "send MetricNotFound when requesting details of non-existing metric" in new TestSetupWithMetricRegistered {
+    logParserActorRef ! RequestAlertRules("notAMetricKey")
+    expectMsg(MetricNotFound)
+  }
 
-    "reply NoAlertsFound when deleting alert rules of a metric without alerts" in new TestSetupWithMetricRegistered {
-      logParserActorRef ! DeleteAllAlertingRules(componentId, metricKey1)
-      expectMsg(NoAlertsFound(componentId, metricKey1))
-    }
+  "forward RequestAlertRuleDetails messages to AlertRuleActors when requesting alert rules" in new TestSetupWithAlertsRegistered {
+    logParserActorRef ! RequestAlertRules(metricKey1)
 
-    "handle deletion of all alert rules of a metric" in new TestSetupWithAlertsRegistered {
-      val probe = TestProbe()
+    alertRule1ActorProbe.expectMsg(RequestAlertRuleDetails)
+    alertRule2ActorProbe.expectMsg(RequestAlertRuleDetails)
 
-      probe.watch(alertRule1ActorProbe.ref)
-      probe.watch(alertRule2ActorProbe.ref)
+    expectNoMsg()
+  }
 
-      logParserActorRef ! DeleteAllAlertingRules(componentId, metricKey1)
+  "reply MetricNotFound when deleting alert rules of a non-existing metric" in new TestSetupWithAlertsRegistered {
+    logParserActorRef ! DeleteAllAlertingRules(componentId, "notAMetricKey")
+    expectMsg(MetricNotFound(componentId, "notAMetricKey"))
+  }
 
-      expectMsg(AlertRulesDeleted(componentId))
+  "reply NoAlertsFound when deleting alert rules of a metric without alerts" in new TestSetupWithMetricRegistered {
+    logParserActorRef ! DeleteAllAlertingRules(componentId, metricKey1)
+    expectMsg(NoAlertsFound(componentId, metricKey1))
+  }
 
-      probe.expectTerminated(alertRule2ActorProbe.ref)
-      probe.expectTerminated(alertRule1ActorProbe.ref)
-    }
+  "handle deletion of all alert rules of a metric" in new TestSetupWithAlertsRegistered {
+    val probe = TestProbe()
+
+    probe.watch(alertRule1ActorProbe.ref)
+    probe.watch(alertRule2ActorProbe.ref)
+
+    logParserActorRef ! DeleteAllAlertingRules(componentId, metricKey1)
+
+    expectMsg(AlertRulesDeleted(componentId))
+
+    probe.expectTerminated(alertRule2ActorProbe.ref)
+    probe.expectTerminated(alertRule1ActorProbe.ref)
   }
 }

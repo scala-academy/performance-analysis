@@ -5,6 +5,7 @@ import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{AlertRuleCreated, CheckRuleBreak, _}
+import performanceanalysis.server._
 
 import scala.util.matching.Regex
 
@@ -89,8 +90,9 @@ class LogParserActor extends Actor with ActorLogging {
         value <- parseResult.metric
         alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
       } {
-        log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
-        alertRuleActorRef ! CheckRuleBreak(value)
+        val msg = CheckRuleBreak(value.toType(metric.valueType))
+        log.info("sending {} to {}", msg, alertRuleActorRef.path)
+        alertRuleActorRef ! msg
       }
     }
   }
