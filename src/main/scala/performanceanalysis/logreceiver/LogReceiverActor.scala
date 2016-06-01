@@ -21,7 +21,7 @@ class LogReceiverActor extends Actor with ActorLogging {
   def normal(logParsersById: Map[ComponentId, LogParser]): Receive = {
     case msg: SubmitLog =>
       handleSubmitLog(logParsersById, msg)
-    case RegisterNewLogParser(compId, newLogParser) =>
+    case RegisterNewLogParser(compId, newLogParser, dateFormat) =>
       log.info("New LogParser created with {}", compId)
       handleRegisterNewLogParser(logParsersById, compId, newLogParser)
   }

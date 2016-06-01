@@ -1,7 +1,7 @@
 package performanceanalysis.administrator
 
 import akka.actor._
-import akka.testkit.{TestActor, TestProbe}
+import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
 import performanceanalysis.server.Protocol._
@@ -24,7 +24,7 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
       // Register a new component and verify that actor responds with LogParserCreated message
       testProbe.send(adminActor, RegisterComponent(componentName))
       testProbe.expectMsgPF() { case LogParserCreated(`componentName`) => true }
-      logReceiverProbe.expectMsgPF() { case RegisterNewLogParser(`componentName`, _) => true }
+      logReceiverProbe.expectMsgPF() { case RegisterNewLogParser(`componentName`, _, _) => true }
 
       // Verify that child actor was created
       val childActorName = LogParserActorCreater.createActorName(componentName)
@@ -72,7 +72,8 @@ class AdministratorActorSpec(testSystem: ActorSystem) extends ActorSpecBase(test
 
     trait TestLogParserActorCreater extends LogParserActorCreater {
       this: ActorLogging =>
-      override def createLogParserActor(context: ActorContext, componentId: String): ActorRef = componentTestProbe.ref
+      override def createLogParserActor(context: ActorContext, componentId: String, dateFormat: Option[String]): ActorRef =
+        componentTestProbe.ref
     }
     val adminActor = system.actorOf(Props(new AdministratorActor(system.deadLetters) with TestLogParserActorCreater))
 

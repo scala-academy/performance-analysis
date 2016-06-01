@@ -2,26 +2,52 @@ package performanceanalysis
 
 import java.time.LocalDateTime
 
-import performanceanalysis.DateTimeParser._
+import performanceanalysis.RegexDateTimeParser._
 
 import scala.util.matching.Regex.Match
 import scala.util.{Failure, Success, Try}
 
 object DateTimeParser {
 
-  private val regex = """(\d{1,2}|\d{4})[ -/\.](\d{1,2})[ -/\.](\d{1,2}|\d{4})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
+  private def regexParser(iYear: Int, iMonth: Int, iDay: Int) = new RegexDateTimeParser(iYear, iMonth, iDay)
 
-  private def parser(iYear: Int, iMonth: Int, iDay: Int): DateTimeParser = new DateTimeParser(iYear, iMonth, iDay)
+  val ymd = regexParser(1, 2, 3)
 
-  val ymd = parser(1, 2, 3)
+  val dmy = regexParser(3, 2, 1)
 
-  val dmy = parser(3, 2, 1)
+  val mdy = regexParser(3, 1, 2)
 
-  val mdy = parser(3, 1, 2)
+  def parser(fmt: Option[String]): DateTimeParser = fmt match {
+    case None => mdy
+    case Some(s) => s.toLowerCase match {
+      case "ymd" => ymd
+      case "dmy" => dmy
+      case "mdy" => mdy
+      case _ => DummyDateTimeParser //TODO or exception?
+    }
+  }
 
 }
 
-class DateTimeParser(iYear: Int, iMonth: Int, iDay: Int) {
+trait DateTimeParser {
+
+  def parse(s: String): Option[LocalDateTime]
+
+}
+
+private object DummyDateTimeParser extends DateTimeParser {
+
+  def parse(s: String): Option[LocalDateTime] = None
+
+}
+
+object RegexDateTimeParser {
+
+  private val regex = """(\d{1,2}|\d{4})[ -/\.](\d{1,2})[ -/\.](\d{1,2}|\d{4})[ T]( \d|\d{2})[:.](\d{2})[.:](\d{2})(\.\d{0,9})?""".r
+
+}
+
+class RegexDateTimeParser(iYear: Int, iMonth: Int, iDay: Int) extends DateTimeParser {
 
   val rawDateParser = new DateParser(iYear, iMonth, iDay)
 

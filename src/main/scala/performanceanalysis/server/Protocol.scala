@@ -11,7 +11,7 @@ object Protocol {
   /**
     * Used by Administrator towards AdministratorActor to register a new component
     */
-  case class RegisterComponent(componentId: String)
+  case class RegisterComponent(componentId: String, dateFormat: Option[String] = None)
 
   /**
     * Used by AdministratorActor towards Administrator to signal that a new component was registered
@@ -97,7 +97,7 @@ object Protocol {
   /**
     * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
-  case class RegisterNewLogParser(componentId: String, actor: ActorRef)
+  case class RegisterNewLogParser(componentId: String, actor: ActorRef, dateFormat: Option[String])
 
   /**
     * Used to register a metric in the LogParserActor
@@ -167,7 +167,7 @@ object Protocol {
 trait Protocol extends DefaultJsonProtocol {
   implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex")
   implicit val detailsFormatter = jsonFormat1(Details.apply)
-  implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
+  implicit val registerComponentsFormatter = jsonFormat2(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)

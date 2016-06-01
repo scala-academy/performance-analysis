@@ -15,10 +15,10 @@ object LogParserActor {
 
   type MetricKey = String
 
-  def props(dateTimeParser: DateTimeParser = DateTimeParser.mdy): Props = Props(new LogParserActor(dateTimeParser) with AlertRuleActorCreator)
+  def props(dateTimeParser: DateTimeParser): Props = Props(new LogParserActor(dateTimeParser) with AlertRuleActorCreator)
 }
 
-class LogParserActor(dateTimeParser: DateTimeParser = DateTimeParser.mdy) extends Actor with ActorLogging {
+class LogParserActor(dateTimeParser: DateTimeParser) extends Actor with ActorLogging {
   this: AlertRuleActorCreator =>
   private type AlertRuleActorRef = ActorRef
 
