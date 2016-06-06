@@ -19,9 +19,8 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val defaultAlertRuleActorProbe = TestProbe("defaultAlertRuleActor")
     val alertRule1ActorProbe = TestProbe("alertRule1Actor")
     val alertRule2ActorProbe = TestProbe("alertRule2Actor")
-    val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
-    val alertingRule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
     val logParserActorRef = TestActorRef(new LogParserActor(DateTimeParser.mdy) with TestAlertRuleActorCreator)
+    val alertingRule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
       override def create(context: ActorContext, rule: AlertRule, componentId: String, metricKey: String): ActorRef = {
