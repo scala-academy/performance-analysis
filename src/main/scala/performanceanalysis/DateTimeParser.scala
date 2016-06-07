@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 
 import performanceanalysis.RegexDateTimeParser._
 
+import scala.util.Try
 import scala.util.matching.Regex.Match
-import scala.util.{Failure, Success, Try}
 
 object DateTimeParser {
 
@@ -23,7 +23,7 @@ object DateTimeParser {
       case "ymd" => ymd
       case "dmy" => dmy
       case "mdy" => mdy
-      case _ => DummyDateTimeParser //TODO or exception?
+      case _ => throw new IllegalArgumentException
     }
   }
 
@@ -32,12 +32,6 @@ object DateTimeParser {
 trait DateTimeParser {
 
   def parse(s: String): Option[LocalDateTime]
-
-}
-
-private object DummyDateTimeParser extends DateTimeParser {
-
-  def parse(s: String): Option[LocalDateTime] = None
 
 }
 
@@ -58,9 +52,6 @@ class RegexDateTimeParser(iYear: Int, iMonth: Int, iDay: Int) extends DateTimePa
   }
 
   def parse(s: String): Option[LocalDateTime] =
-    Try(regex.findFirstMatchIn(s).map(rawParser)) match {
-      case Success(option) => option
-      case Failure(_) => None
-    }
+    Try(regex.findFirstMatchIn(s).map(rawParser)).toOption.flatten
 
 }

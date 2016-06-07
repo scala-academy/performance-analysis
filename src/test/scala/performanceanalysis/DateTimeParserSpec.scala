@@ -42,6 +42,19 @@ class DateTimeParserSpec extends SpecBase {
         Some(LocalDateTime.parse("2016-04-19T14:17:16.829"))
     }
 
+    "Select correct format format" in {
+      DateTimeParser.parser(Some("ymd")) shouldBe DateTimeParser.ymd
+      DateTimeParser.parser(Some("dmy")) shouldBe DateTimeParser.dmy
+      DateTimeParser.parser(Some("mdy")) shouldBe DateTimeParser.mdy
+      DateTimeParser.parser(None) shouldBe DateTimeParser.mdy
+    }
+
+    "Throw an exception on non-existent format" in {
+      intercept[IllegalArgumentException] {
+        DateTimeParser.parser(Some("bla"))
+      }
+    }
+
   }
 
 }
