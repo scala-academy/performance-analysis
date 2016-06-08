@@ -19,9 +19,9 @@ class AlertRuleActor(alertingRule: AlertRule, componentId: String, metricKey: St
   lazy val actionActor: ActorRef = create(context)
 
   override def receive: Receive = {
-    case CheckRuleBreak(value: Duration) if doesBreakRule(value) =>
+    case CheckRuleBreak(value:Duration) if doesBreakRule(value) =>
       log.info("Rule {} is broken for {}/{}", alertingRule, componentId, metricKey)
-      actionActor ! Action(alertingRule.action.url, alertMessage(value))
+      actionActor ! AlertRuleViolated(alertingRule.action.url, alertMessage(value))
     case RequestAlertRuleDetails =>
       sender() ! SingleAlertRuleDetails(alertingRule)
   }

@@ -11,9 +11,10 @@ enablePlugins(GatlingPlugin)
 
 libraryDependencies ++= {
   val akkaV            = "2.4.3"
-  val scalaTestV       = "3.0.0-M15"
+  val scalaTestV       = "3.0.0-RC1"
   val finagleV         = "6.31.0"
   val gatlingV         = "2.2.0"
+
   Seq(
     "com.typesafe.akka"     %% "akka-stream"                          % akkaV,
     "com.typesafe.akka"     %% "akka-http-core"                       % akkaV,
