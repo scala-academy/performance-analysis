@@ -14,7 +14,6 @@ libraryDependencies ++= {
   val scalaTestV       = "3.0.0-RC1"
   val finagleV         = "6.31.0"
   val gatlingV         = "2.2.0"
-}
 
   Seq(
     "com.typesafe.akka"     %% "akka-stream"                          % akkaV,
@@ -27,7 +26,7 @@ libraryDependencies ++= {
     "org.scalatest"         %% "scalatest"                            % scalaTestV       % "it,test",
     "com.twitter"           %% "finagle-http"                         % finagleV         % "it",
     "io.gatling.highcharts" %  "gatling-charts-highcharts"            % gatlingV         % "it,test,gatling",
-    "io.gatling"            %  "gatling-test-framework"               % gatlingV         % "it,test,gatling",
+    "io.gatling"            %  "gatling-test-framework"               % gatlingV         % "it,test,gatling"
   )
 }
 
