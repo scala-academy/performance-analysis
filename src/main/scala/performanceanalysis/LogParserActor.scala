@@ -6,6 +6,7 @@ import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.messages.Rules.AlertRule
 import performanceanalysis.server.messages.AlertMessages._
 import performanceanalysis.server.messages.LogMessages._
+import performanceanalysis.server._
 
 import scala.util.matching.Regex
 
@@ -68,21 +69,22 @@ class LogParserActor extends Actor with ActorLogging {
       }
   }
 
-  private def findMetric(metricKey: MetricKey, metrics: List[Metric]):Option[Metric] = {
+  private def findMetric(metricKey: MetricKey, metrics: List[Metric]): Option[Metric] = {
     metrics.find(_.metricKey == metricKey)
   }
 
   private def updateAlertsByMetricKey(
-      alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]],
-      newAlertRuleActorRef: AlertRuleActorRef,
-      key: MetricKey) = {
+                                       alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]],
+                                       newAlertRuleActorRef: AlertRuleActorRef,
+                                       key: MetricKey) = {
     alertsByMetricKey + (key -> (newAlertRuleActorRef :: alertsByMetricKey.getOrElse(key, Nil)))
   }
 
+
   private def handleSubmitLog(
-       msg: SubmitLog,
-       metrics: List[Metric],
-       alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]]) {
+                               msg: SubmitLog,
+                               metrics: List[Metric],
+                               alertsByMetricKey: Map[MetricKey, List[AlertRuleActorRef]]) {
     log.debug("received {} in {}", msg, self.path)
     metrics.foreach { metric =>
       val parseResult = parseLogLine(msg.logLine, metric)

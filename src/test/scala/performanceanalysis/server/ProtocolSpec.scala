@@ -1,7 +1,8 @@
 package performanceanalysis.server
 
 import performanceanalysis.base.SpecBase
-import performanceanalysis.server.Protocol.{Metric, ValueType}
+import performanceanalysis.server.Protocol.{ValueType}
+import performanceanalysis.server.messages.LogMessages.Metric
 import spray.json._
 
 import scala.concurrent.duration.Duration

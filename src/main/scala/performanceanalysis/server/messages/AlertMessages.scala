@@ -54,9 +54,9 @@ object AlertMessages {
   case class AlertRulesDeleted(componentId: String)
 
   /**
-    * Used by LogParserActor to trigger an alert action check. Message handled by AlerRuleActor.
+    * Used by LogParserActor to trigger an alert action check. Message handled by AlertRuleActor.
     */
-  case class CheckRuleBreak(value: String)
+  case class CheckRuleBreak(value: Any)
 
   /**
     * Used by ActionAlertActor to trigger an action when a rule breaks. Handled by AlertActionActor.

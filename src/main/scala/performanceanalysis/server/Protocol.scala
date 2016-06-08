@@ -4,13 +4,23 @@ import performanceanalysis.server.messages.AdministratorMessages.{RegisterCompon
 import performanceanalysis.server.messages.AlertMessages.AllAlertRuleDetails
 import performanceanalysis.server.messages.LogMessages.{Details, Metric}
 import performanceanalysis.server.messages.Rules
-import spray.json.DefaultJsonProtocol
+import performanceanalysis.server.Protocol._
+import spray.json._
+import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat}
+
+import scala.concurrent.duration.Duration
 
 object Protocol {
+
+  /**
+    * The value type of a Metric
+    */
+  case class ValueType(aType: Any)
 
 }
 
 trait Protocol extends DefaultJsonProtocol {
+
 
   implicit object valueTypeFormat extends JsonFormat[ValueType] {
     def read(value: JsValue): ValueType = value match {
