@@ -20,9 +20,8 @@ class AlertRuleActor(alertingRule: AlertRule, componentId: String, metricKey: St
 
   override def receive: Receive = {
     case CheckRuleBreak(value:Duration) if doesBreakRule(value) =>
-      log.info(s"Rule $alertingRule is broken for $componentId/$metricKey")
-      actionActor ! AlertRuleViolated(alertingRule.action.url,
-      s"Rule $alertingRule was broken for component id $componentId and metric key $metricKey with value $value")
+      log.info("Rule {} is broken for {}/{}", alertingRule, componentId, metricKey)
+      actionActor ! AlertRuleViolated(alertingRule.action.url, alertMessage(value))
     case RequestAlertRuleDetails =>
       sender() ! SingleAlertRuleDetails(alertingRule)
   }

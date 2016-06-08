@@ -13,12 +13,8 @@ import performanceanalysis.server.messages.AlertMessages.AlertRuleViolated
 
 import scala.concurrent.Future
 
-//import org.scalamock.scalatest.MockFactory
-
 class AlertActionActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
   def this() = this(ActorSystem("AlertActionActorSpec"))
-
-  val alertMethodCalled = false
 
   "AlertActionActor" must {
 
