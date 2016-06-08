@@ -1,7 +1,5 @@
 package performanceanalysis.server.messages
 
-import scala.concurrent.duration.Duration
-
 object AlertMessages {
 
   /**

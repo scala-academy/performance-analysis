@@ -1,10 +1,9 @@
 package performanceanalysis.server
 
-
 import performanceanalysis.server.messages.AdministratorMessages.{RegisterComponent, RegisteredComponents}
-import performanceanalysis.server.messages.AlertMessages.{AllAlertRuleDetails}
-import performanceanalysis.server.messages.Rules
+import performanceanalysis.server.messages.AlertMessages.AllAlertRuleDetails
 import performanceanalysis.server.messages.LogMessages.{Details, Metric}
+import performanceanalysis.server.messages.Rules
 import spray.json.DefaultJsonProtocol
 
 object Protocol {
