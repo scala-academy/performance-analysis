@@ -1,12 +1,11 @@
 package performanceanalysis.server
 
+import performanceanalysis.server.Protocol._
 import performanceanalysis.server.messages.AdministratorMessages.{RegisterComponent, RegisteredComponents}
 import performanceanalysis.server.messages.AlertMessages.AllAlertRuleDetails
 import performanceanalysis.server.messages.LogMessages.{Details, Metric}
 import performanceanalysis.server.messages.Rules
-import performanceanalysis.server.Protocol._
-import spray.json._
-import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat}
+import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, _}
 
 import scala.concurrent.duration.Duration
 
@@ -39,7 +38,7 @@ trait Protocol extends DefaultJsonProtocol {
 
   implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex", "value-type")
   implicit val detailsFormatter = jsonFormat1(Details.apply)
-  implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
+  implicit val registerComponentsFormatter = jsonFormat2(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
 
   implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)

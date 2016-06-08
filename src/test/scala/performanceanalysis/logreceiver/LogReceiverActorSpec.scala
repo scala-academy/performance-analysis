@@ -25,7 +25,7 @@ class LogReceiverActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSy
       testProbe.expectMsgPF() { case LogParserNotFound(`componentName`) => true }
 
       // Register a new actor and verify that logs are now accepted for processing
-      testProbe.send(logReceiverActor, RegisterNewLogParser(componentName, logParserProbe.ref))
+      testProbe.send(logReceiverActor, RegisterNewLogParser(componentName, logParserProbe.ref, None))
       testProbe.send(logReceiverActor, SubmitLog(componentName, logLine))
       testProbe.expectMsgPF() { case LogSubmitted => true }
     }

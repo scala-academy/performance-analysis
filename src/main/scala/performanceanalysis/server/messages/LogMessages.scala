@@ -29,7 +29,7 @@ object LogMessages {
   /**
     * Used by Administrator towards LogReceiver to notify it of a new LogReceiver actor
     */
-  case class RegisterNewLogParser(componentId: String, actor: ActorRef)
+  case class RegisterNewLogParser(componentId: String, actor: ActorRef, dateFormat: Option[String])
 
   /**
     * Used to register a metric in the LogParserActor
