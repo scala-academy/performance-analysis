@@ -5,7 +5,7 @@ object AdministratorMessages {
   /**
     * Used by Administrator towards AdministratorActor to register a new component
     */
-  case class RegisterComponent(componentId: String)
+  case class RegisterComponent(componentId: String, dateFormat: Option[String] = None)
 
   /**
     * Used by AdministratorActor towards Administrator to signal that a log parser was created
