@@ -48,7 +48,7 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       senderProbe.expectTerminated(ref)
     }
 
-    "send result back if after 2 seconds not every actor has responded" in {
+    "send result back if after 5 seconds not every actor has responded" in {
       val senderProbe = TestProbe()
       val ruleActorProbe1 = TestProbe()
       val ruleActorProbe2 = TestProbe()
