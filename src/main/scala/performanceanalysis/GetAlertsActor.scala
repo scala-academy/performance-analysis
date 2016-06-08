@@ -1,8 +1,8 @@
 package performanceanalysis
 
-import akka.actor.{ActorLogging, Actor, Props, ActorRef}
-import performanceanalysis.server.Protocol.{RequestAlertRuleDetails, AllAlertRuleDetails, SingleAlertRuleDetails}
-import performanceanalysis.server.Protocol.Rules.AlertRule
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules.AlertRule
 
 /**
   * Created by steven on 17-5-16.

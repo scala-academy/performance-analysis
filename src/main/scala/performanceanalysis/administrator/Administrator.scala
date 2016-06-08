@@ -7,9 +7,11 @@ import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, Statu
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import performanceanalysis.server.Protocol.Rules.AlertRule
-import performanceanalysis.server.Protocol.{RegisterComponent, _}
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages._
 import performanceanalysis.server.Server
+import performanceanalysis.server.messages.Rules.AlertRule
+import performanceanalysis.server.messages.LogMessages._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future

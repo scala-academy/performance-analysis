@@ -1,12 +1,14 @@
 package performanceanalysis.administrator
 
-import akka.http.scaladsl.model.{HttpRequest, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.StatusCodes.Created
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
 import performanceanalysis.base.SpecBase
-import performanceanalysis.server.Protocol.Rules.{Action, AlertRule, Threshold}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.LogMessages._
+import performanceanalysis.server.messages.Rules.{Action, AlertRule, Threshold}
 
 /**
   * Created by Jordi on 9-3-2016.
