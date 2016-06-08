@@ -11,11 +11,9 @@ enablePlugins(GatlingPlugin)
 
 libraryDependencies ++= {
   val akkaV            = "2.4.3"
-  val scalaTestV       = "3.0.0-M15"
+  val scalaTestV       = "3.0.0-RC1"
   val finagleV         = "6.31.0"
   val gatlingV         = "2.2.0"
-  val mockitoV         = "1.9.5"
-  val scalamockV        = "3.2.2"
 
   Seq(
     "com.typesafe.akka"     %% "akka-stream"                          % akkaV,
@@ -29,8 +27,6 @@ libraryDependencies ++= {
     "com.twitter"           %% "finagle-http"                         % finagleV         % "it",
     "io.gatling.highcharts" %  "gatling-charts-highcharts"            % gatlingV         % "it,test,gatling",
     "io.gatling"            %  "gatling-test-framework"               % gatlingV         % "it,test,gatling",
-    "org.mockito"           %  "mockito-all"                          % mockitoV         % "it,test",
-    "org.scalamock"         %  "scalamock-scalatest-support_2.11"     % scalamockV         % "it,test"
   )
 }
 

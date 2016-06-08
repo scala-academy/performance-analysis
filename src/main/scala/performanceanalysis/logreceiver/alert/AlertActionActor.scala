@@ -2,7 +2,7 @@ package performanceanalysis.logreceiver.alert
 
 import scala.concurrent.Future
 import akka.actor.{Actor, ActorLogging, Props}
-import akka.http.scaladsl.Http
+import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
 import performanceanalysis.server.Protocol.AlertRuleViolated
 import akka.stream.ActorMaterializer
@@ -16,7 +16,7 @@ class AlertActionActor extends Actor with ActorLogging {
 
   implicit val materializer = ActorMaterializer()
 
-  lazy val http = Http(context.system)
+  lazy val http: HttpExt = Http(context.system)
 
   def receive: Receive = {
     case AlertRuleViolated(endpoint, message) => alert(endpoint, message)
