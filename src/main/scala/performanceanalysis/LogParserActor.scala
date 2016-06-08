@@ -3,8 +3,10 @@ package performanceanalysis
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.Rules.AlertRule
-import performanceanalysis.server.Protocol.{AlertRuleCreated, CheckRuleBreak, _}
+import performanceanalysis.server.messages.AlertMessages.{AlertRuleCreated, CheckRuleBreak, _}
+import performanceanalysis.server.messages.LogMessages._
+import performanceanalysis.server.messages.Rules.AlertRule
+import performanceanalysis.server._
 
 import scala.util.matching.Regex
 import scala.collection.mutable
@@ -85,13 +87,16 @@ class LogParserActor(dateTimeParser: DateTimeParser) extends Actor with ActorLog
   private def handleSubmitLog(msg: SubmitLog) {
     log.debug("received {} in {}", msg, self.path)
     logLines += msg.logLine
-    for {
-      value <- parseResult.metric
-      alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
-    } {
-      val msg = CheckRuleBreak(value.toType(metric.valueType))
-      log.info("sending {} to {}", msg, alertRuleActorRef.path)
-      alertRuleActorRef ! msg
+    metrics.foreach { metric =>
+      val parseResult = parseLogLine(msg.logLine, metric)
+      for {
+        value <- parseResult.metric
+        alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
+      } {
+        val msg = CheckRuleBreak(value.toType(metric.valueType))
+        log.info("sending {} to {}", msg, alertRuleActorRef.path)
+        alertRuleActorRef ! msg
+      }
     }
   }
 
