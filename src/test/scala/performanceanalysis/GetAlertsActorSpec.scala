@@ -3,9 +3,9 @@ package performanceanalysis
 import akka.actor.{ActorRef, ActorSystem}
 import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules
+import performanceanalysis.server.messages.Rules.{AlertRule, Threshold, Action => RuleAction}
 
 import scala.concurrent.duration._
 
@@ -34,13 +34,13 @@ class GetAlertsActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
 
       senderProbe.watch(ref)
 
-      val alertRule1 = AlertRule(Threshold("max"), Protocol.Rules.Action("url1"))
+      val alertRule1 = AlertRule(Threshold("max"), Rules.Action("url1"))
       ruleActorProbe1.expectMsg(RequestAlertRuleDetails)
       ruleActorProbe1.reply(SingleAlertRuleDetails(alertRule1))
 
       senderProbe.expectNoMsg()
 
-      val alertRule2 = AlertRule(Threshold("max"), Protocol.Rules.Action("url2"))
+      val alertRule2 = AlertRule(Threshold("max"), Rules.Action("url2"))
       ruleActorProbe2.expectMsg(RequestAlertRuleDetails)
       ruleActorProbe2.reply(SingleAlertRuleDetails(alertRule2))
 

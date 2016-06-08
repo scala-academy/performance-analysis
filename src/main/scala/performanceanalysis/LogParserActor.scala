@@ -5,6 +5,7 @@ import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
 import performanceanalysis.server.Protocol.Rules.AlertRule
 import performanceanalysis.server.Protocol.{AlertRuleCreated, CheckRuleBreak, _}
+
 import scala.util.matching.Regex
 import scala.collection.mutable
 import scala.collection.mutable.{Map => MutableMap}
@@ -76,7 +77,8 @@ class LogParserActor extends Actor with ActorLogging {
     metrics.find(_.metricKey == metricKey)
   }
 
-  private def updateAlertsByMetricKey(newAlertRuleActorRef: AlertRuleActorRef, key: MetricKey) = {
+  private def updateAlertsByMetricKey(newAlertRuleActorRef: AlertRuleActorRef,
+                                      key: MetricKey) = {
     alertsByMetricKey += (key -> (newAlertRuleActorRef :: alertsByMetricKey.getOrElse(key, Nil)))
   }
 
@@ -84,12 +86,12 @@ class LogParserActor extends Actor with ActorLogging {
     log.debug("received {} in {}", msg, self.path)
     logLines += msg.logLine
     for {
-      metric <- metrics
-      value <- parseLogLine(msg.logLine, metric).metric
+      value <- parseResult.metric
       alertRuleActorRef <- alertsByMetricKey(metric.metricKey)
     } {
-      log.info("sending {} to {}", CheckRuleBreak(value), alertRuleActorRef.path)
-      alertRuleActorRef ! CheckRuleBreak(value)
+      val msg = CheckRuleBreak(value.toType(metric.valueType))
+      log.info("sending {} to {}", msg, alertRuleActorRef.path)
+      alertRuleActorRef ! msg
     }
   }
 

@@ -3,8 +3,11 @@ package performanceanalysis.logreceiver.alert
 import akka.actor.{ActorContext, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Threshold, Action => RuleAction}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules.{AlertRule, Threshold, Action => RuleAction}
+
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
 
 class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSystem) {
@@ -16,16 +19,20 @@ class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val testProbe = TestProbe("testProbe")
 
     val rule = AlertRule(Threshold("2000 ms"), RuleAction("aUrl"))
-    val alertRuleActor = system.actorOf(Props(new AlertRuleActor(rule, "aCid", "aMetricKey") with TestAlertActionActorCreator))
+    val componentId = "aCid"
+    val metricKey = "aMetricKey"
+    val alertRuleActor = system.actorOf(Props(new AlertRuleActor(rule, componentId, metricKey) with TestAlertActionActorCreator))
 
     "trigger an action when incoming value breaks the given rule" in {
-      testProbe.send(alertRuleActor, CheckRuleBreak("2001 ms"))
+      val duration = Duration("2001 millis")
+      testProbe.send(alertRuleActor, CheckRuleBreak(duration))
 
-      alertActionActorProbe.expectMsg(Action("aUrl", s"Rule $rule was broken for component id aCid and metric key aMetricKey"))
+      val ruleMsg = s"Rule $rule was broken for component id $componentId and metric key $metricKey with value $duration"
+      alertActionActorProbe.expectMsg(Action("aUrl", ruleMsg))
     }
 
     "NOT trigger an action when incoming does not break the given rule" in {
-      testProbe.send(alertRuleActor, CheckRuleBreak("2000 ms"))
+      testProbe.send(alertRuleActor, CheckRuleBreak(2000 millis))
 
       alertActionActorProbe.expectNoMsg()
     }

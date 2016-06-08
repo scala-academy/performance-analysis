@@ -6,7 +6,8 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.testkit.TestProbe
 import performanceanalysis.base.SpecBase
-import performanceanalysis.server.Protocol.{LogParserNotFound, LogSubmitted, SubmitLog}
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.LogMessages._
 
 class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
   class LogReceiverProbe extends LogReceiver {
