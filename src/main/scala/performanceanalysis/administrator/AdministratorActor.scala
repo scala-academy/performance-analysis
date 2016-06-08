@@ -2,7 +2,9 @@ package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.LogMessages._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -27,10 +29,18 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
       handleGetComponents(logParserActors, sender)
+    case GetComponentLogLines(componentId) =>
+      handleGetComponentLogLines(logParserActors, componentId, sender)
+    case GetParsedLogLines(componentId, metricKey) =>
+      handleGetParsedLogLines(logParserActors, componentId, metricKey, sender)
     case RegisterMetric(componentId, metric) =>
       handleRegisterMetric(logParserActors, componentId, metric, sender)
-    case msg:RegisterAlertingRule =>
+    case msg:RegisterAlertRule =>
       handleRegisterAlertingRule(logParserActors, msg);
+    case msg:DeleteAllAlertingRules =>
+      handleDeleteAlertingRules(logParserActors, msg)
+    case msg:GetAlertRules =>
+      handleGetAlertRules(logParserActors, msg)
   }
 
   private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
@@ -69,19 +79,50 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
     }
   }
 
+  private def handleGetComponentLogLines(logParserActors: Map[String, ActorRef],
+                                          componentId: String,
+                                          sender: ActorRef) = {
+    routeToLogParser(logParserActors, componentId, sender) { ref =>
+      log.debug(s"Requesting logLines for $componentId from ${ref.path}")
+      (ref ? RequestComponentLogLines) pipeTo sender
+    }
+  }
+
+  private def handleGetParsedLogLines(logParserActors: Map[String, ActorRef],
+                                      componentId: String,
+                                      metricKey: String,
+                                      sender: ActorRef) = {
+    routeToLogParser(logParserActors, componentId, sender) { ref =>
+      log.debug(s"Requesting parsed logLines for $componentId and $metricKey from ${ref.path}")
+      (ref ? RequestParsedLogLines(metricKey)) pipeTo sender
+    }
+  }
+
+  private def handleGetAlertRules(logParserActors: Map[String, ActorRef], msg: GetAlertRules) = {
+    routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
+      log.debug("Requesting alert rules from {}", ref.path)
+      (ref ? RequestAlertRules(msg.metricKey)) pipeTo sender()
+    }
+  }
+
   private def handleRegisterMetric(logParserActors: Map[String, ActorRef], componentId: String, metric: Metric, sender: ActorRef) = {
     routeToLogParser(logParserActors, componentId, sender) { ref =>
-        log.debug("Sending metric registration to {}", ref.path)
+        log.debug(s"Sending metric registration to {}", ref.path)
         (ref ? metric) pipeTo sender
     }
   }
 
-  private def handleRegisterAlertingRule(logParserActors: Map[String, ActorRef], msg: RegisterAlertingRule) = {
+  private def handleRegisterAlertingRule(logParserActors: Map[String, ActorRef], msg: RegisterAlertRule) = {
     routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
       log.debug("Sending new alerting rule to {}", ref.path)
       (ref ? msg) pipeTo sender()
     }
   }
+
+  private def handleDeleteAlertingRules(logParserActors: Map[String, ActorRef], msg: DeleteAllAlertingRules) = {
+    routeToLogParser(logParserActors, msg.componentId, sender()) { ref =>
+      log.debug("Sending rule deletion message to {}", ref.path)
+      (ref ? msg) pipeTo sender()
+    }
+  }
 }
-
-

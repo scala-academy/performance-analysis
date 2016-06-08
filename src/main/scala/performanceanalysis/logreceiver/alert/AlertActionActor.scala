@@ -4,8 +4,8 @@ import scala.concurrent.Future
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.http.scaladsl.{Http, HttpExt}
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
-import performanceanalysis.server.Protocol.AlertRuleViolated
 import akka.stream.ActorMaterializer
+import performanceanalysis.server.messages.AlertMessages.AlertRuleViolated
 
 object AlertActionActor {
 

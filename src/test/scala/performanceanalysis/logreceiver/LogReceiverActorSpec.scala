@@ -3,7 +3,8 @@ package performanceanalysis.logreceiver
 import akka.actor.ActorSystem
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.LogMessages._
 
 /**
   * Created by Jordi on 5-4-2016.

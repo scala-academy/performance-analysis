@@ -1,33 +1,37 @@
 package performanceanalysis.logreceiver.alert
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.server.Protocol.Rules.AlertingRule
-import performanceanalysis.server.Protocol.{AlertRuleViolated, CheckRuleBreak}
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules.AlertRule
 
 import scala.concurrent.duration._
 
 object AlertRuleActor {
 
-  def props(alertingRule: AlertingRule, componentId: String, metricKey: String): Props =
+  def props(alertingRule: AlertRule, componentId: String, metricKey: String): Props =
     Props.apply(new AlertRuleActor(alertingRule, componentId, metricKey) with AlertActionActorCreator)
 }
 
-class AlertRuleActor(alertingRule: AlertingRule, componentId: String, metricKey: String) extends Actor with ActorLogging {
+class AlertRuleActor(alertingRule: AlertRule, componentId: String, metricKey: String) extends Actor with ActorLogging {
 
   this: AlertActionActorCreator =>
 
   lazy val actionActor: ActorRef = create(context)
 
   override def receive: Receive = {
-    case msg: CheckRuleBreak if doesBreakRule(msg.value) =>
+    case CheckRuleBreak(value:Duration) if doesBreakRule(value) =>
       log.info(s"Rule $alertingRule is broken for $componentId/$metricKey")
       actionActor ! AlertRuleViolated(alertingRule.action.url,
-      s"Rule $alertingRule was broken for component id $componentId and metric key $metricKey")
+      s"Rule $alertingRule was broken for component id $componentId and metric key $metricKey with value $value")
+    case RequestAlertRuleDetails =>
+      sender() ! SingleAlertRuleDetails(alertingRule)
   }
 
-  private def doesBreakRule(value: String) = {
-    log.info(s"Checking if $value breaks $alertingRule")
-    Duration(value) > alertingRule.threshold.limit
+  private def doesBreakRule(duration: Duration) = {
+    log.debug("Checking if {} breaks {}", duration, alertingRule)
+    duration > alertingRule.threshold.limit
   }
 
+  private def alertMessage(value: Duration) =
+    s"Rule $alertingRule was broken for component id $componentId and metric key $metricKey with value $value"
 }

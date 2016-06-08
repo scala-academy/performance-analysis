@@ -5,11 +5,11 @@ import akka.event.LoggingAdapter
 import akka.http.scaladsl.model.{HttpMethods, HttpRequest, HttpResponse}
 import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.{HttpExt, HttpsConnectionContext}
-import akka.stream.{ActorMaterializer, Materializer}
+import akka.stream.Materializer
 import akka.testkit.TestProbe
 import com.typesafe.config.ConfigFactory
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages.AlertRuleViolated
 
 import scala.concurrent.Future
 

@@ -5,8 +5,9 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import performanceanalysis.server.Protocol._
 import performanceanalysis.server.Server
+import performanceanalysis.server.messages.AdministratorMessages.LogParserNotFound
+import performanceanalysis.server.messages.LogMessages._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
