@@ -30,5 +30,4 @@ class AlertActionActor extends Actor with ActorLogging {
     //check http status of response
     //possibly retry
   }
-
 }
