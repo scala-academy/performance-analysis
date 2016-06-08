@@ -28,12 +28,12 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
 
       val componentId: String = "parsingConfiguredComponent"
       And(s"registered a component with id $componentId")
-      registerComponent(componentId).statusCode shouldBe Created.intValue
+      awaitRegisterComponent(componentId).getStatusCode() shouldBe Created.intValue
 
       val metricPath = s"/components/$componentId/metrics"
       val metricKey = "aKey"
       val regex: String = """(\\d+ ms)"""
-      val data = s"""{"regex" : "$regex", "metric-key" : "$metricKey"}"""
+      val data = s"""{"regex" : "$regex", "metric-key" : "$metricKey", "value-type": "duration"}"""
 
       And(s"also registered a metric $data to $metricPath on the Administrator port")
       awaitAdminPostResponse(metricPath, data).statusCode shouldBe Created.intValue
@@ -53,6 +53,11 @@ class LogSubmissionTest extends IntegrationTestBase with ScalaFutures with Twitt
         result.statusCode shouldBe Accepted.intValue
         Then("the response should have status code 202")
       }
+
+      val logDateData = """{"logline" : "[INFO] [04/19/2016 14:17:16.829] [Some.ClassName] Some action took 101 ms"}"""
+      When(s"I POST $logDateData to $logPath")
+      val response2 = awaitLogReceiverPostResonse(logPath, logDateData)
+      response2.statusCode shouldBe 202
     }
   }
 }

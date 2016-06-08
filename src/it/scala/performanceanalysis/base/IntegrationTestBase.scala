@@ -76,9 +76,19 @@ trait IntegrationTestBase
     responseFuture.futureValue
   }
 
+  def adminGetResponse(path: String): Future[Response] = {
+    val request = buildGetRequest(adminRequestHost, path)
+    adminClient(request)
+  }
+
   def awaitAdminPostResponse(path: String, data: String): Response = {
     val request = buildPostRequest(adminRequestHost, path, data)
     awaitResponse(adminClient, request)
+  }
+
+  def adminPostResponse(path: String, data: String): Future[Response] = {
+    val request = buildPostRequest(adminRequestHost, path, data)
+    adminClient(request)
   }
 
   def awaitAdminGetResponse(path: String): Response = {
@@ -91,13 +101,24 @@ trait IntegrationTestBase
     awaitResponse(adminClient, request)
   }
 
+
+  def awaitLogReceiverPostResonse(path: String, data: String): Response = {
+    val request = buildPostRequest(logReceiverRequestHost, path, data)
+    awaitResponse(logReceiverClient, request)
+  }
+
   def logReceiverPostResponse(path: String, data: String): Future[Response] = {
     val request = buildPostRequest(logReceiverRequestHost, path, data)
     logReceiverClient(request)
   }
 
-  def registerComponent(componentId: String): Response = {
+  def awaitRegisterComponent(componentId: String): Response = {
     val data = s"""{"componentId" : "$componentId"}"""
     awaitAdminPostResponse("/components", data)
+  }
+
+  def registerComponent(componentId: String): Future[Response] = {
+    val data = s"""{"componentId" : "$componentId"}"""
+    adminPostResponse("/components", data)
   }
 }
