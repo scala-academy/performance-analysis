@@ -14,6 +14,7 @@ libraryDependencies ++= {
   val scalaTestV       = "3.0.0-RC1"
   val finagleV         = "6.31.0"
   val gatlingV         = "2.2.0"
+}
 
   Seq(
     "com.typesafe.akka"     %% "akka-stream"                          % akkaV,
