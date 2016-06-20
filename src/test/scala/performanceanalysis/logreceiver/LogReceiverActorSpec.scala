@@ -5,6 +5,7 @@ import akka.testkit.{EventFilter, TestActorRef, TestProbe}
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.server.messages.AdministratorMessages._
 import performanceanalysis.server.messages.LogMessages._
+import LogReceiverActor.splitIntoLines
 
 /**
   * Created by Jordi on 5-4-2016.
@@ -42,7 +43,6 @@ class LogReceiverActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSy
 
 
   "splitIntoLines" must {
-    import LogReceiverActor.splitIntoLines
     val expected = List("line1", "line2", "line3", "   line4", "\tline5")
 
     "return array of lines if windows EOL exists" in {
