@@ -23,7 +23,7 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  override protected def componentsRoute: Route = pathSingleSlash {
+  override protected def routes: Route = pathSingleSlash {
     get {
       complete(MethodNotAllowed, None)
     }
