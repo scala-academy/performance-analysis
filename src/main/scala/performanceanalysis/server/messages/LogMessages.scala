@@ -8,12 +8,18 @@ object LogMessages {
   /**
     * Used by LogReceiverActor towards LogReceiver to request processing of single log of a component
     */
+  case class SubmitLogs(componentId: String, logLines: String)
   case class SubmitLog(componentId: String, logLine: String)
+
+  /**
+    * Used by LogReceiver towards
+    */
+  case class Log(logLines: String)
 
   /**
     * Used by LogReceiverActor to signal log submitted
     */
-  case object LogSubmitted
+  case object LogsSubmitted
 
 
   /**
