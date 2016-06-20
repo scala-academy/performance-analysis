@@ -37,7 +37,7 @@ class AdministratorSimulation extends Simulation with SpecBase {
     ).exec(
       http("register metric")
         .post(registerMetricUrl)
-        .body(StringBody(s"""{"regex" : "$regex", "metric-key" : "$metricKey"}""")).asJSON
+        .body(StringBody(s"""{"regex" : "$regex", "metric-key" : "$metricKey", "value-type": "duration"}""")).asJSON
         .check(status.is(Created.intValue))
     ).exec(
       http("add alerting rule")
