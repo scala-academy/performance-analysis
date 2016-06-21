@@ -14,6 +14,7 @@ libraryDependencies ++= {
   val scalaTestV       = "3.0.0-RC1"
   val finagleV         = "6.31.0"
   val gatlingV         = "2.2.0"
+  val scalajV          = "2.3.0"
 
   Seq(
     "com.typesafe.akka"     %% "akka-stream"                          % akkaV,
@@ -21,6 +22,7 @@ libraryDependencies ++= {
     "com.typesafe.akka"     %% "akka-http-experimental"               % akkaV,
     "com.typesafe.akka"     %% "akka-http-spray-json-experimental"    % akkaV,
     "com.typesafe.akka"     %% "akka-actor"                           % akkaV,
+    "org.scalaj"            %% "scalaj-http"                          % scalajV,
     "com.typesafe.akka"     %% "akka-testkit"                         % akkaV            % "it,test",
     "com.typesafe.akka"     %% "akka-http-testkit"                    % akkaV            % "it,test",
     "org.scalatest"         %% "scalatest"                            % scalaTestV       % "it,test",
