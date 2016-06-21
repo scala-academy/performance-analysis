@@ -2,6 +2,7 @@ package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
+import akka.persistence.PersistentActor
 import performanceanalysis.server.messages.AdministratorMessages._
 import performanceanalysis.server.messages.AlertMessages._
 import performanceanalysis.server.messages.LogMessages._
@@ -17,10 +18,16 @@ object AdministratorActor {
   def props(logReceiverActor: ActorRef): Props = Props(new AdministratorActor(logReceiverActor))
 }
 
-class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLogging with LogParserActorCreater {
+class AdministratorActor(logReceiverActor: ActorRef) extends PersistentActor with ActorLogging with LogParserActorCreater {
   this: LogParserActorCreater =>
 
-  def receive: Receive = normal(Map.empty[String, ActorRef])
+  def receiveCommand: Receive = normal(Map.empty[String, ActorRef])
+
+  def receiveRecover: Receive = {
+    case x =>
+  }
+
+  override def persistenceId = "administrator-id-1"
 
   def normal(logParserActors: Map[String, ActorRef]): Receive = {
     case RegisterComponent(componentId, dateFormat) =>

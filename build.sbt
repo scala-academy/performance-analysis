@@ -16,6 +16,9 @@ libraryDependencies ++= {
   val gatlingV         = "2.2.0"
 
   Seq(
+    "com.typesafe.akka" %% "akka-persistence" % akkaV,
+    "org.iq80.leveldb" % "leveldb" % "0.7",
+    "org.fusesource.leveldbjni" % "leveldbjni-all" % "1.8",
     "com.typesafe.akka"     %% "akka-stream"                          % akkaV,
     "com.typesafe.akka"     %% "akka-http-core"                       % akkaV,
     "com.typesafe.akka"     %% "akka-http-experimental"               % akkaV,
