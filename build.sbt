@@ -1,9 +1,9 @@
 //import scalariform.formatter.preferences._
 import io.gatling.sbt.GatlingPlugin
 
-name          := """scala-in-practise-performance analysis"""
+name          := "periphas"
 organization  := "com.github.scala-academy"
-version       := "0.0.1"
+version       := "1.0.0-SNAPSHOT"
 scalaVersion  := "2.11.7"
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
@@ -51,9 +51,9 @@ Revolver.settings
 //  .setPreference(AlignSingleLineCaseStatements.MaxArrowIndent, 100)
 //  .setPreference(DoubleIndentClassDeclaration, true)
 
-//publishMavenStyle := true
-//publishArtifact in Test := false
-//pomIncludeRepository := { _ => false }
+publishMavenStyle := true
+publishArtifact in Test := false
+pomIncludeRepository := { _ => false }
 
 //publishTo := {
 //  val nexus = "https://oss.sonatype.org/"
