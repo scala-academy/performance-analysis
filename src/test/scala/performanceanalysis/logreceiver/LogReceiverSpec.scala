@@ -11,7 +11,7 @@ import performanceanalysis.server.messages.LogMessages._
 
 class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
   class LogReceiverProbe extends LogReceiver {
-    val logLine: String = "some log line"
+    val logMessage: Log = Log("some log line")
     val probe = TestProbe("test-log-receiver")
 
     override val logReceiverActor: ActorRef = probe.ref
@@ -32,10 +32,10 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components/<existing-compId>/logs respond with status code 202" in new LogReceiverProbe() {
-      val results = Post(s"/components/$componentId/logs", logLine) ~> routes
+      val results = Post(s"/components/$componentId/logs", logMessage) ~> routes
 
-      probe.expectMsg(SubmitLog(componentId, logLine))
-      probe.reply(LogSubmitted)
+      probe.expectMsg(SubmitLogs(componentId, logMessage.logLines))
+      probe.reply(LogsSubmitted)
 
       results ~> check {
         response.status shouldBe Accepted
@@ -43,9 +43,9 @@ class LogReceiverSpec extends SpecBase with ScalatestRouteTest {
     }
 
     "handle a POST on /components/<non-existing-compId>/logs respond with status code 404" in new LogReceiverProbe() {
-      val testResult = Post(s"/components/$componentId/logs", logLine) ~> routes
+      val testResult = Post(s"/components/$componentId/logs", logMessage) ~> routes
 
-      probe.expectMsg(SubmitLog(componentId, logLine))
+      probe.expectMsg(SubmitLogs(componentId, logMessage.logLines))
       probe.reply(LogParserNotFound(componentId))
 
       testResult ~> check {

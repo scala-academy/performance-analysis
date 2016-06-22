@@ -3,7 +3,7 @@ package performanceanalysis.server
 import performanceanalysis.server.Protocol._
 import performanceanalysis.server.messages.AdministratorMessages.{RegisterComponent, RegisteredComponents}
 import performanceanalysis.server.messages.AlertMessages.AllAlertRuleDetails
-import performanceanalysis.server.messages.LogMessages.{Details, Metric}
+import performanceanalysis.server.messages.LogMessages.{Details, Log, Metric}
 import performanceanalysis.server.messages.Rules
 import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, _}
 
@@ -46,4 +46,6 @@ trait Protocol extends DefaultJsonProtocol {
   implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
 
   implicit val alertRulesDetailsFormatter = jsonFormat1(AllAlertRuleDetails.apply)
+
+  implicit val logFormatter = jsonFormat1(Log.apply)
 }
