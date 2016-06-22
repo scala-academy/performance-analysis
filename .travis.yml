@@ -17,6 +17,12 @@ cache:
     - $HOME/.m2
     - $HOME/.ivy2
     - $HOME/.sbt/boot
+    - $HOME/.ivy2/cache
+
+before_cache:
+    # Tricks to avoid unnecessary cache updates
+    - find $HOME/.ivy2 -name "ivydata-*.properties" -delete
+    - find $HOME/.sbt -name "*.lock" -delete
 
 notifications:
   webhooks:
