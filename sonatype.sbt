@@ -43,6 +43,10 @@ pomExtra in Global := {
         <id>ruud</id>
         <name>Ruud Prein</name>
       </developer>
+      <developer>
+        <id>gvr</id>
+        <name>Ger van Rossum</name>
+      </developer>
     </developers>
 }
 
