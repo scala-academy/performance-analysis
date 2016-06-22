@@ -30,10 +30,41 @@ pomExtra in Global := {
       <developer>
         <id>effibennekers</id>
         <name>Effi Bennekers</name>
+        <url>http://bennekers.net</url>
+      </developer>
+      <developer>
+        <id>Neojume</id>
+        <name>Steven Laan</name>
       </developer>
       <developer>
         <id>geerdink</id>
         <name>Bas Geerdink</name>
       </developer>
+      <developer>
+        <id>Seetaramayya</id>
+        <name>Seeta Ramayya Vadali</name>
+      </developer>
+      <developer>
+        <id>ruud</id>
+        <name>Ruud Prein</name>
+      </developer>
+      <developer>
+        <id>gvr</id>
+        <name>Ger van Rossum</name>
+      </developer>
+          <developer>
+        <id>ronnybrunswijk</id>
+        <name>Rienk Boonstra</name>
+      </developer>
+      <developer>
+        <id>jwvl</id>
+        <name>Jan-Willem van Leussen</name>
+      </developer>
     </developers>
 }
+
+credentials ++= (for {
+  username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+  password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+} yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
+
