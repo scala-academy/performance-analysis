@@ -28,8 +28,7 @@ trait Server extends Protocol with Config with SprayJsonSupport {
 
   protected implicit def materializer = Server.materializer
 
-  protected def routes: Route = componentsRoute
-  protected def componentsRoute: Route
+  protected def routes: Route
 
   protected def httpPort: Int
 
