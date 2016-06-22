@@ -37,7 +37,7 @@ class LogParserActor(dateTimeParser: DateTimeParser) extends Actor with ActorLog
       sender() ! Details(metrics.toList)
 
     case RequestComponentLogLines =>
-      log.debug("received request for loglines")
+      log.debug("received request for log lines")
       sender() ! ComponentLogLines(logLines.toList)
 
     case RequestParsedLogLines(metricKey) =>

@@ -27,7 +27,20 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
-  override protected def componentsRoute: Route = pathPrefix("components") {
+  override protected def routes: Route = componentsRoute ~ registerComponentGetOrPostRoute
+
+  private def registerComponentGetOrPostRoute: Route = get {
+    // Handle GET (get list of all registered components)
+    complete(handleGet(administratorActor ? GetRegisteredComponents))
+  } ~ post {
+    // Handle POST (registration of a new component)
+    entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
+      log.debug(s"Received POST on /components with entity $registerComponent")
+      complete(handlePost(administratorActor ? registerComponent))
+    }
+  }
+
+  private def componentsRoute: Route = pathPrefix("components") {
     pathPrefix(Segment) { componentId =>
       pathPrefix("metrics") {
         pathEnd {
@@ -68,15 +81,6 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         // Handle GET of an existing component to obtain metrics only
         complete(handleGet(administratorActor ? GetDetails(componentId)))
       }
-    } ~ get {
-        // Handle GET (get list of all registered components)
-        complete(handleGet(administratorActor ? GetRegisteredComponents))
-    } ~ post {
-        // Handle POST (registration of a new component)
-        entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
-          log.debug(s"Received POST on /components with entity $registerComponent")
-          complete(handlePost(administratorActor ? registerComponent))
-        }
     }
   }
 
@@ -88,7 +92,7 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         ???
       case MetricRegistered(metric) =>
         Future(HttpResponse(status = Created))
-      case msg:AlertRuleCreated =>
+      case msg: AlertRuleCreated =>
         Future(HttpResponse(status = Created))
       case msg: MetricNotFound =>
         Future(HttpResponse(status = NotFound))
@@ -124,10 +128,10 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
         toFutureResponse(entityFuture, StatusCodes.OK)
       case ComponentLogLines(lines) =>
         Future(HttpResponse(status = StatusCodes.OK).withEntity(lines mkString " "))
-      case msg:AllAlertRuleDetails =>
+      case msg: AllAlertRuleDetails =>
         val entityFuture = Marshal(msg).to[ResponseEntity]
         toFutureResponse(entityFuture, StatusCodes.OK)
-      case msg:MetricNotFound =>
+      case msg: MetricNotFound =>
         Future(HttpResponse(status = NotFound))
     }
   }
