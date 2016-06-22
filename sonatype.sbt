@@ -30,6 +30,7 @@ pomExtra in Global := {
       <developer>
         <id>effibennekers</id>
         <name>Effi Bennekers</name>
+        <url>http://bennekers.net</url>
       </developer>
       <developer>
         <id>Neojume</id>
