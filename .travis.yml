@@ -31,4 +31,3 @@ notifications:
 
 after_success:
   - sbt publish
-
