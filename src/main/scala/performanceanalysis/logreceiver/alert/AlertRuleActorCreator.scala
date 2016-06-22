@@ -1,8 +1,8 @@
 package performanceanalysis.logreceiver.alert
 
 import akka.actor.{ActorContext, ActorRef}
-import performanceanalysis.server.Protocol.Metric
-import performanceanalysis.server.Protocol.Rules.AlertRule
+import performanceanalysis.server.messages.LogMessages.Metric
+import performanceanalysis.server.messages.Rules.AlertRule
 
 trait AlertRuleActorCreator {
 

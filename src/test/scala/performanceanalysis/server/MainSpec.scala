@@ -2,6 +2,7 @@ package performanceanalysis.server
 
 import org.scalatest.concurrent.ScalaFutures
 import performanceanalysis.base.SpecBase
+
 import scala.concurrent.duration._
 
 class MainSpec extends SpecBase with ScalaFutures {

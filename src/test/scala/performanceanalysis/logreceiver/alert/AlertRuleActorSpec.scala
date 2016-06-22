@@ -3,8 +3,11 @@ package performanceanalysis.logreceiver.alert
 import akka.actor.{ActorContext, ActorRef, ActorSystem, Props}
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Action => RuleAction}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.Protocol.ValueType
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.Rules.{AlertRule, Action => RuleAction}
+import performanceanalysis.server.messages.AlertMessages.AlertRuleViolated
+import performanceanalysis.server.messages.LogMessages.Metric
 
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -28,7 +31,7 @@ class AlertRuleActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
       testProbe.send(alertRuleActor, CheckRuleBreak(duration))
 
       val ruleMsg = s"Rule $rule was broken for component id $componentId and metric $metric with value $duration"
-      alertActionActorProbe.expectMsg(Action("aUrl", ruleMsg))
+      alertActionActorProbe.expectMsg(AlertRuleViolated("aUrl", ruleMsg))
     }
 
     "NOT trigger an action when incoming does not break the given rule" in {

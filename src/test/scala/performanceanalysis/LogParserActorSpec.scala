@@ -5,8 +5,10 @@ import akka.testkit.{TestActorRef, TestProbe}
 import performanceanalysis.LogParserActor.MetricKey
 import performanceanalysis.base.ActorSpecBase
 import performanceanalysis.logreceiver.alert.AlertRuleActorCreator
-import performanceanalysis.server.Protocol.Rules.{AlertRule, Action => RuleAction}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.Protocol.ValueType
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.LogMessages._
+import performanceanalysis.server.messages.Rules.{AlertRule, Threshold, Action => RuleAction}
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.{Duration, _}
@@ -20,7 +22,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
     val defaultAlertRuleActorProbe = TestProbe("defaultAlertRuleActor")
     val alertRule1ActorProbe = TestProbe("alertRule1Actor")
     val alertRule2ActorProbe = TestProbe("alertRule2Actor")
-    val logParserActorRef = TestActorRef(new LogParserActor() with TestAlertRuleActorCreator)
+    val logParserActorRef = TestActorRef(new LogParserActor(DateTimeParser.mdy) with TestAlertRuleActorCreator)
     val alertingRule = AlertRule("_ < 2000 ms", RuleAction("aUrl"))
 
     trait TestAlertRuleActorCreator extends AlertRuleActorCreator {
@@ -71,7 +73,7 @@ class LogParserActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSyst
   "LogParserActor" must {
 
     "send metrics on request for details" in new TestSetup {
-      val logParserActor = TestActorRef(LogParserActor.props)
+      val logParserActor = TestActorRef(LogParserActor.props(DateTimeParser.mdy))
       logParserActor ! RequestDetails
       expectMsg(Details(Nil))
     }

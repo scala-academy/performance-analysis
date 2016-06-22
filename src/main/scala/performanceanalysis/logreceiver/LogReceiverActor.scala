@@ -1,7 +1,8 @@
 package performanceanalysis.logreceiver
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages.LogParserNotFound
+import performanceanalysis.server.messages.LogMessages._
 
 /**
   * Created by Jordi on 5-4-2016.
@@ -21,7 +22,7 @@ class LogReceiverActor extends Actor with ActorLogging {
   def normal(logParsersById: Map[ComponentId, LogParser]): Receive = {
     case msg: SubmitLog =>
       handleSubmitLog(logParsersById, msg)
-    case RegisterNewLogParser(compId, newLogParser) =>
+    case RegisterNewLogParser(compId, newLogParser, dateFormat) =>
       log.info("New LogParser created with {}", compId)
       handleRegisterNewLogParser(logParsersById, compId, newLogParser)
   }

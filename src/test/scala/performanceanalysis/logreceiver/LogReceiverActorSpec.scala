@@ -3,7 +3,8 @@ package performanceanalysis.logreceiver
 import akka.actor.ActorSystem
 import akka.testkit.TestProbe
 import performanceanalysis.base.ActorSpecBase
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.LogMessages._
 
 /**
   * Created by Jordi on 5-4-2016.
@@ -24,7 +25,7 @@ class LogReceiverActorSpec(testSystem: ActorSystem) extends ActorSpecBase(testSy
       testProbe.expectMsgPF() { case LogParserNotFound(`componentName`) => true }
 
       // Register a new actor and verify that logs are now accepted for processing
-      testProbe.send(logReceiverActor, RegisterNewLogParser(componentName, logParserProbe.ref))
+      testProbe.send(logReceiverActor, RegisterNewLogParser(componentName, logParserProbe.ref, None))
       testProbe.send(logReceiverActor, SubmitLog(componentName, logLine))
       testProbe.expectMsgPF() { case LogSubmitted => true }
     }

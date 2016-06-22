@@ -32,6 +32,29 @@ class ComponentRegistrationTest extends IntegrationTestBase with Protocol {
 
     }
 
+    scenario("Component registration with dateformat") {
+      Given("the server is running")
+
+      val path = "/components"
+      val data = """{"componentId" : "TestComponentYMD", "dateFormat": "ymd"}"""
+      val registerRequest = buildPostRequest(adminRequestHost, path, data)
+      val registerResponseFuture = performAdminRequest(registerRequest)
+      val registerResponse = Await.result(registerResponseFuture)
+      And(s"I registered a component by doing a POST with $data to $path")
+      registerResponse.statusCode shouldBe 201
+
+      When(s"I do a HTTP GET to $path on the Administrator port")
+      val getComponentsRequest = buildGetRequest(adminRequestHost, path)
+      val getComponentsResponse = Await.result(performAdminRequest(getComponentsRequest))
+
+      Then("the response should have statuscode 200")
+      getComponentsResponse.statusCode shouldBe 200
+
+      And(s"the content should be a list containing $data")
+      getComponentsResponse.contentString.parseJson shouldBe """{"componentIds": ["TestComponent", "TestComponentYMD"]}""".parseJson
+
+    }
+
     scenario("Configure parsing of a log line with a single metric") {
 
       Given("the server is running")

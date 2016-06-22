@@ -1,9 +1,11 @@
 package performanceanalysis.logreceiver.alert
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import performanceanalysis.server.Protocol.Rules.AlertRule
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.LogMessages.Metric
+import performanceanalysis.server.messages.Rules.AlertRule
 
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 object AlertRuleActor {
@@ -19,9 +21,9 @@ class AlertRuleActor(alertingRule: AlertRule, componentId: String, metric: Metri
   lazy val actionActor: ActorRef = create(context)
 
   override def receive: Receive = {
-    case CheckRuleBreak(value) if doesBreakRule(value) =>
+    case CheckRuleBreak(value: Duration) if doesBreakRule(value) =>
       log.info("Rule {} is broken for {}/{}", alertingRule, componentId, metric)
-      actionActor ! Action(alertingRule.action.url, alertMessage(value))
+      actionActor ! AlertRuleViolated(alertingRule.action.url, alertMessage(value))
     case RequestAlertRuleDetails =>
       sender() ! SingleAlertRuleDetails(alertingRule)
   }

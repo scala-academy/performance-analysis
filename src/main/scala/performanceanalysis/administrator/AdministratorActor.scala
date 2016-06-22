@@ -2,7 +2,9 @@ package performanceanalysis.administrator
 
 import akka.actor._
 import akka.pattern.{ask, pipe}
-import performanceanalysis.server.Protocol._
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages._
+import performanceanalysis.server.messages.LogMessages._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -21,8 +23,8 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
   def receive: Receive = normal(Map.empty[String, ActorRef])
 
   def normal(logParserActors: Map[String, ActorRef]): Receive = {
-    case RegisterComponent(componentId) =>
-      handleRegisterComponent(logParserActors, componentId, sender)
+    case RegisterComponent(componentId, dateFormat) =>
+      handleRegisterComponent(logParserActors, componentId, dateFormat, sender)
     case GetDetails(componentId) =>
       handleGetDetails(logParserActors, componentId, sender)
     case GetRegisteredComponents =>
@@ -41,12 +43,12 @@ class AdministratorActor(logReceiverActor: ActorRef) extends Actor with ActorLog
       handleGetAlertRules(logParserActors, msg)
   }
 
-  private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, sender: ActorRef) = {
+  private def handleRegisterComponent(logParserActors: Map[String, ActorRef], componentId: String, dateFormat: Option[String], sender: ActorRef) = {
     logParserActors.get(componentId) match {
       case None =>
-        val newActor = createLogParserActor(context, componentId)
+        val newActor = createLogParserActor(context, componentId, dateFormat)
         // Notify LogReceiver of new actor
-        logReceiverActor ! RegisterNewLogParser(componentId, newActor)
+        logReceiverActor ! RegisterNewLogParser(componentId, newActor, None)
         // Update actor state
         log.debug("Created new component {}", componentId)
         val newLogParserActors = logParserActors.updated(componentId, newActor)
