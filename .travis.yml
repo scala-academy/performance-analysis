@@ -6,7 +6,9 @@ jdk: oraclejdk8
 
 env:
   - CODACY_PROJECT_TOKEN=86acc16c5a8046ff9a3ec4705919c696
-
+  global:
+  - secure: mPOqsoYfD4seupO7aSQWEq3EQyDRuXQkKQNrv92TmetX9gz9zM0GKHj/IpYRsDQaxULEheqQc9jceeq3QDCv5TcBc/mNBrQlUXZyZO0y4sEWhyZI1hpnBSNoNr6nGBzEdfOUOfTGWesY3AqJQ7JNEW6AgYO4ojzQaRb4Q3DAV0uKcSFuH+bXx8JU83+gSajQUEB4teca6FhQKlIFCHY5SG+wjoO+ektpXkkUGFrKnyMjLbhV9avbzHMafD3zr+mjfyyvPZRZ38rPJo19Y/2z+SWJ0se05aX5qkPcEDXH9/1wytilHqGdAARLRxo+vEi44FhhHeVOH9eHZWMojhWf3fJMaXx2nI4dZb2xm0DMUiDhd3M3Ov/x4s9tx0V9g4lqMqQ8hR6Hn2X8UvyzlBXnwD9E1K2QfQs+tM+MZlhlC6MzkHUb/kDnQFwFcvF7im9gdWtsCZ59Fye8mIk1L9/t06X9Dy8TdV2g7HUfsI493jcBPzdG7NAq/e4HVQN7N6DgD2NFpMEcm5SSeMWFyKT4wK3hKRZGOraKMLwrQ3Tq+Ol8YlCuh601D9qrS6ve5cX+/2sJOt17yZr980A/o02OijvwaeEeVqpQ2IGXaprYuJHZ2APxUzNQ6pDyMZFZv2UQ+opd0PAIrCpjIy+nceAcLe8D5fBu487pfRNexyNcumI=
+  - secure: CPJRPih5kEYeJtQ+L0I4+TIBge0aK1bqUmZDm+dPtqGn0UQu98wiYbMsRwDtRsOeqmSYvulE0NCUa28vY0Mt09oL1xO2tajaAr/rEmj3D8y3gCPVPRqTXDxvKVubMLBQDVvGeaq8uuC0EMPzbjEGBnAtMki0G2GRV4aei/gdkWBJLSYCj0CCIU9Fi4RXBrvjP7MTcFENhrsmPHc/ubDDEiUGR999fN39Ce6mm8dE/HWA0Mx8chh82Af1wEbjQD/whjTiFviBl9rFJvN0isSZ082gOAeXEY4SpWq95SWrGaRa10HqivPzIdI6pZcTzSHjVGGWqBuWnCW5sd5MbulEEAdIx8SKPlv82i0ZwXNItt2NI+XKnwOi+Cyj+HXHN6Hk64weD44KlF6RVA3plN2URf6XJVI3bB+c7cOsr1HOC7uHIjqgkb8Vgczmv22dZ9iP4xKd4NIy5Ysr6TF7gMM7vXyFC3clDzMGwopo5sALY9+XSCb9Xjl/LgsbboY6LgaqCen1QECpJ825OuiRls+IVQymRjWq/3xQRDwyKH2tb9Y+GqQwjnTIJ2kjHdGLCeiU74OcaxzGCg3vvlNHsCgVJ/LgsP+FrtYxMjnghvutADPWWEufhyJssXBFtyw+AzPy69krHEEqeghnKBKKbjXZ56z6MR80aULdwd8w78mKVx4=
 script: ./build.sh
 
 # These directories are cached to S3 at the end of the build
@@ -20,3 +22,6 @@ notifications:
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/980748d83fc35b082c35
+
+after_success:
+- '[[ $TRAVIS_BRANCH == "master" ]] && { sbt publish; };'
