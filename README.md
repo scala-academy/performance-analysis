@@ -11,11 +11,51 @@ Build status:
 [![Build Status](https://travis-ci.org/scala-academy/performance-analysis.svg?branch=develop)](https://travis-ci.org/scala-academy/performance-analysis)
 
 Codacy grade and coverage:
-[![Codacy Badge](https://api.codacy.com/project/badge/grade/97a43b62463844059cab48fbdcd2e3bd)](https://www.codacy.com/app/scala-academy/performance-analysis)
-[![Codacy Badge](https://api.codacy.com/project/badge/coverage/97a43b62463844059cab48fbdcd2e3bd)](https://www.codacy.com/app/scala-academy/performance-analysis)
+[![Codacy Badge](https://api.codacy.com/project/badge/grade/99aa6d53ff6644899303a0ce71b733a2)](https://www.codacy.com/app/scala-academy/performance-analysis)
+[![Codacy Badge](https://api.codacy.com/project/badge/coverage/99aa6d53ff6644899303a0ce71b733a2)](https://www.codacy.com/app/scala-academy/performance-analysis)
 
 This is a project used in the "Scala and akka in practise" course.
 Goal: learn programing with Scala and Akka in a real-world scenario.
 
 What do you call a Java repository?
 A garbage collection<Java>
+
+Run Gatling Simulations
+=======================
+
+To run all gatling tests
+
+`sbt gatling:test`
+
+To run single test
+
+`sbt gatling:testOnly <pacakge.simulation.class>`
+
+Actor Design
+============
+
+![Alt text](http://g.gravizo.com/g?
+  digraph G {
+    node [shape=box];
+    Administrator [shape=oval];
+    LogReceiver [shape=oval];
+    aize ="4,4";
+    AdministratorActor;
+    LogParserActor;
+    LogReceiverActor;
+    AlertRuleActor;
+    AlertActionActor;
+    ;
+    Administrator -> AdministratorActor [label="RegisterMetric\\nGetRegisteredComponents\\nRegisterComponent\\nRegisterAlertingRule\\nGetDetails"];
+    ;
+    AdministratorActor -> Administrator [label="MetricCreated\\nRegisteredComponents\\nLogParserCreated\\nLogParserExisted\\nDetails\\nLogParserNotFound\\nMetricNotFound\\nAlertingRuleCreated"];
+    ;
+    AdministratorActor -> LogParserActor [label="RequestDetails\\nRegisterMetric\\nRegisterAlertingRule"];
+    LogParserActor -> AdministratorActor [label="Details\\nMetricRegistered\\nMetricNotFound\\nAlertingRuleCreated"];
+    LogParserActor -> AlertRuleActor [label="CheckRuleBreak"];
+    AlertRuleActor -> AlertActionActor [label="Action"];
+    ;
+    LogReceiver -> LogReceiverActor [label="SubmitLog"];
+    LogReceiverActor -> LogReceiver [label="LogSubmitted"];
+  }
+)

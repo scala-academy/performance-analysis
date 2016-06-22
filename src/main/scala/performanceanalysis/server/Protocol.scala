@@ -1,71 +1,51 @@
 package performanceanalysis.server
 
-import akka.actor.ActorRef
 import performanceanalysis.server.Protocol._
-import spray.json.DefaultJsonProtocol
+import performanceanalysis.server.messages.AdministratorMessages.{RegisterComponent, RegisteredComponents}
+import performanceanalysis.server.messages.AlertMessages.AllAlertRuleDetails
+import performanceanalysis.server.messages.LogMessages.{Details, Log, Metric}
+import performanceanalysis.server.messages.Rules
+import spray.json.{DefaultJsonProtocol, JsString, JsValue, JsonFormat, _}
+
+import scala.concurrent.duration.Duration
 
 object Protocol {
 
   /**
-    * Used by Administrator towards AdministratorActor to register a new component
+    * The value type of a Metric
     */
-  case class RegisterComponent(componentId: String)
-
-  /**
-    * Used by AdministratorActor towards Administrator to signal that a new component was registered
-    */
-  case class LogParserCreated(componentId: String)
-
-  /**
-    * Used by AdministratorActor towards Administrator to signal that the component was already registered
-    */
-  case class LogParserExisted(componentId: String)
-
-  /**
-    * Used by AdministratorActor towards Administrator and by LogReceiverActor towards LogReceiver
-    * to signal that the component could not be found
-    */
-  case class LogParserNotFound(componentId: String)
-
-  /**
-    * Used by Administrator towards AdministratorActor to request details of a component
-    */
-  case class GetDetails(componentId: String)
-
-  /**
-    * Used by Administrator towards AdministratorActor to request a list of all registered components
-    */
-  case object GetRegisteredComponents
-
-  /**
-    * Used by AdministratorActor towards Administrator to return a list of all registered components
-    */
-  case class RegisteredComponents(componentIds: Set[String])
-
-  /**
-    * Used by LogReceiverActor towards LogReceiver to request processing of logs of a component
-    */
-  case class SubmitLogs(componentId: String, logs: String)
-
-  /**
-    * Used by AdministratorActor towards LogParserActor to request its details
-    */
-  case object RequestDetails
-
-  /**
-    * Used by LogParserActor towards AdministratorActor to return its details
-    */
-  case class Details(componentId: String)
-
-  /**
-    * Used by Administrator towards LogReceiver to notify it ofa new LogReceiver actor
-    */
-  case class RegisterNewLogParser(componentId: String, actor: ActorRef)
+  case class ValueType(aType: Any)
 
 }
 
 trait Protocol extends DefaultJsonProtocol {
+
+
+  implicit object valueTypeFormat extends JsonFormat[ValueType] {
+    def read(value: JsValue): ValueType = value match {
+      case JsString("string") => ValueType(classOf[String])
+      case JsString("boolean") => ValueType(classOf[Boolean])
+      case JsString("duration") => ValueType(classOf[Duration])
+      case _ => deserializationError("Unknown value type")
+    }
+    def write(f: ValueType): JsValue = f.aType match {
+      case c if c == classOf[String] => JsString("string")
+      case c if c == classOf[Boolean] => JsString("boolean")
+      case c if c == classOf[Duration] => JsString("duration")
+      case _ => serializationError("Unknown value type")
+    }
+  }
+
+  implicit val metricFormatter = jsonFormat(Metric.apply, "metric-key", "regex", "value-type")
   implicit val detailsFormatter = jsonFormat1(Details.apply)
-  implicit val registerComponentsFormatter = jsonFormat1(RegisterComponent.apply)
+  implicit val registerComponentsFormatter = jsonFormat2(RegisterComponent.apply)
   implicit val registeredComponentsFormatter = jsonFormat1(RegisteredComponents.apply)
+
+  implicit val thresholdRuleFormatter = jsonFormat1(Rules.Threshold.apply)
+  implicit val actionRuleFormatter = jsonFormat1(Rules.Action.apply)
+  implicit val alertingRuleFormatter = jsonFormat2(Rules.AlertRule.apply)
+
+  implicit val alertRulesDetailsFormatter = jsonFormat1(AllAlertRuleDetails.apply)
+
+  implicit val logFormatter = jsonFormat1(Log.apply)
 }

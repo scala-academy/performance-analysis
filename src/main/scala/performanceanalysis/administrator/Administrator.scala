@@ -2,12 +2,16 @@ package performanceanalysis.administrator
 
 import akka.actor.ActorRef
 import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes.{Created, NotFound}
+import akka.http.scaladsl.model.{HttpResponse, ResponseEntity, StatusCode, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.pattern.ask
-import performanceanalysis.server.Protocol.{RegisterComponent, _}
+import performanceanalysis.server.messages.AdministratorMessages._
+import performanceanalysis.server.messages.AlertMessages._
 import performanceanalysis.server.Server
+import performanceanalysis.server.messages.Rules.AlertRule
+import performanceanalysis.server.messages.LogMessages._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -23,56 +27,113 @@ class Administrator(logReceiverActor: ActorRef) extends Server {
 
   protected val administratorActor = system.actorOf(AdministratorActor.props(logReceiverActor))
 
-  def componentsRoute: Route = pathPrefix("components") {
-    path(Segment) { componentId =>
-      get {
-        // Handle GET of an existing component
-        complete(handleGetDetails(administratorActor ? GetDetails(componentId)))
-      } ~ patch {
-        // Handle PATCH of an existing component
-        ???
-      }
-    } ~
-      get {
-        // Handle GET (get list of all registered components)
-        complete(handleGetComponents(administratorActor ? GetRegisteredComponents))
-      } ~
-      post {
-        // Handle POST (registration of a new component)
-        entity(as[RegisterComponent]) { registerComponent =>
-          log.debug(s"Received POST on /components with entity $registerComponent")
-          complete(HttpResponse(status = StatusCodes.NotImplemented))
-        }
-      }
+  override protected def routes: Route = componentsRoute ~ registerComponentGetOrPostRoute
+
+  private def registerComponentGetOrPostRoute: Route = get {
+    // Handle GET (get list of all registered components)
+    complete(handleGet(administratorActor ? GetRegisteredComponents))
+  } ~ post {
+    // Handle POST (registration of a new component)
+    entity(as[RegisterComponent]) { (registerComponent: RegisterComponent) =>
+      log.debug(s"Received POST on /components with entity $registerComponent")
+      complete(handlePost(administratorActor ? registerComponent))
+    }
   }
 
-  protected def routes: Route = componentsRoute
+  private def componentsRoute: Route = pathPrefix("components") {
+    pathPrefix(Segment) { componentId =>
+      pathPrefix("metrics") {
+        pathEnd {
+          post {
+            entity(as[Metric]) { metric =>
+              log.debug(s"Received POST on /components/$componentId with entity $metric")
+              complete(handlePost(administratorActor ? RegisterMetric(componentId, metric)))
+            }
+          }
+        } ~ pathPrefix(Segment) { metricKey =>
+          pathEnd {
+            get {
+              log.debug(s"Received GET for log lines for $componentId with metric $metricKey")
+              complete(handleGet(administratorActor ? GetParsedLogLines(componentId, metricKey)))
+            }
+          } ~ path("alerting-rules") {
+            post {
+              entity(as[AlertRule]) { rule =>
+                log.debug(s"Received POST for new rule: $rule for $componentId/$metricKey")
+                complete(handlePost(administratorActor ? RegisterAlertRule(componentId, metricKey, rule)))
+              }
+            } ~ get {
+              // Handle GET of an existing component
+              complete(handleGet(administratorActor ? GetAlertRules(componentId, metricKey)))
+            } ~ delete {
+              // Delete all registered alert rules
+              log.debug("Received DELETE for all rules for {}/{}", componentId, metricKey)
+              complete(handleDelete(administratorActor ? DeleteAllAlertingRules(componentId, metricKey)))
+            }
+          }
+        }
+      } ~ path("logs") {
+        get {
+          log.debug(s"Received GET for loglines for $componentId")
+          complete(handleGet(administratorActor ? GetComponentLogLines(componentId)))
+        }
+      } ~ get {
+        // Handle GET of an existing component to obtain metrics only
+        complete(handleGet(administratorActor ? GetDetails(componentId)))
+      }
+    }
+  }
 
-  private def handleGetComponents(resultFuture: Future[Any]): Future[HttpResponse] = {
+  private def handlePost(resultFuture: Future[Any]): Future[HttpResponse] = {
+    resultFuture.flatMap {
+      case LogParserCreated(componentId) =>
+        Future(HttpResponse(status = Created))
+      case LogParserExisted(componentId) =>
+        ???
+      case MetricRegistered(metric) =>
+        Future(HttpResponse(status = Created))
+      case msg: AlertRuleCreated =>
+        Future(HttpResponse(status = Created))
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
+    }
+  }
+
+  private def handleDelete(resultFuture: Future[Any]): Future[HttpResponse] = {
+    resultFuture.flatMap {
+      case AlertRulesDeleted(componentId) =>
+        log.debug("Successful delete of alert rules for {}", componentId)
+        Future(HttpResponse(status = StatusCodes.NoContent))
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
+      case NoAlertsFound(_, _) =>
+        Future(HttpResponse(status = StatusCodes.NoContent))
+    }
+  }
+
+  private def handleGet(resultFuture: Future[Any]): Future[HttpResponse] = {
+    def toFutureResponse(entityFuture: Future[ResponseEntity], status: StatusCode) = {
+      entityFuture.map {
+        case entity =>
+          HttpResponse(status).withEntity(entity)
+      }
+    }
+
     resultFuture.flatMap {
       case RegisteredComponents(componentIds) =>
         val entityFuture = Marshal(RegisteredComponents(componentIds)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
+        toFutureResponse(entityFuture, StatusCodes.OK)
+      case Details(metrics) =>
+        val entityFuture = Marshal(Details(metrics)).to[ResponseEntity]
+        toFutureResponse(entityFuture, StatusCodes.OK)
+      case ComponentLogLines(lines) =>
+        Future(HttpResponse(status = StatusCodes.OK).withEntity(lines mkString " "))
+      case msg: AllAlertRuleDetails =>
+        val entityFuture = Marshal(msg).to[ResponseEntity]
+        toFutureResponse(entityFuture, StatusCodes.OK)
+      case msg: MetricNotFound =>
+        Future(HttpResponse(status = NotFound))
     }
   }
 
-  private def handleGetDetails(resultFuture: Future[Any]): Future[HttpResponse] = {
-    resultFuture.flatMap {
-      case Details(componentId) =>
-        val entityFuture = Marshal(Details(componentId)).to[ResponseEntity]
-        entityFuture.map {
-          case registeredComponentsEntity =>
-            HttpResponse(
-              status = StatusCodes.OK,
-              entity = registeredComponentsEntity
-            )
-        }
-    }
-  }
 }
