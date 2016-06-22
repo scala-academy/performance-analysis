@@ -23,7 +23,7 @@ class LogReceiver extends Server  {
 
   val logReceiverActor = system.actorOf(LogReceiverActor.props)
 
-  override protected def componentsRoute: Route = pathSingleSlash {
+  override protected def routes: Route = pathSingleSlash {
     get {
       complete(MethodNotAllowed, None)
     }
@@ -35,8 +35,8 @@ class LogReceiver extends Server  {
     pathPrefix(Segment) { componentId =>
       path("logs") {
         post {
-          entity(as[String]) { logLine =>
-            complete(handlePostLog(logReceiverActor ? SubmitLog(componentId, logLine)))
+          entity(as[Log]) { log =>
+            complete(handlePostLog(logReceiverActor ? SubmitLogs(componentId, log.logLines)))
           }
         }
       }
@@ -46,7 +46,7 @@ class LogReceiver extends Server  {
   private def handlePostLog(resultFuture: Future[Any]): Future[HttpResponse] = {
     resultFuture.flatMap {
       case LogParserNotFound(componentId) => Future(HttpResponse(status = NotFound))
-      case LogSubmitted => Future(HttpResponse(status = Accepted))
+      case LogsSubmitted => Future(HttpResponse(status = Accepted))
     }
   }
 }

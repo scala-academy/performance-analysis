@@ -1,7 +1,6 @@
 package performanceanalysis
 
-import akka.http.javadsl.model.StatusCodes
-import akka.http.javadsl.model.StatusCodes.CREATED
+import akka.http.scaladsl.model.StatusCodes.Created
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 import performanceanalysis.base.SpecBase
@@ -24,7 +23,7 @@ class AdministratorSimulation extends Simulation with SpecBase {
     .acceptEncodingHeader("gzip, deflate")
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
-  val scn = scenario("BasicSimulation").repeat(numberOfRepeats, "n") {
+  val scn = scenario("AdministratorSimulation").repeat(numberOfRepeats, "n") {
     val compId = "compId${n}"
     val metricKey = "metrickey"
     val regex = "(\\\\d+ ms)"
@@ -34,17 +33,17 @@ class AdministratorSimulation extends Simulation with SpecBase {
       http("register component")
         .post("/components")
         .body(StringBody(s"""{"componentId" : "$compId"}""")).asJSON
-        .check(status.is(CREATED.intValue()))
+        .check(status.is(Created.intValue))
     ).exec(
       http("register metric")
         .post(registerMetricUrl)
-        .body(StringBody(s"""{"regex" : "$regex", "metric-key" : "$metricKey"}""")).asJSON
-        .check(status.is(CREATED.intValue()))
+        .body(StringBody(s"""{"regex" : "$regex", "metric-key" : "$metricKey", "value-type": "duration"}""")).asJSON
+        .check(status.is(Created.intValue))
     ).exec(
       http("add alerting rule")
         .post(alertingRuleUrl)
         .body(StringBody("""{"threshold": {"max": "2000 ms"}, "action": {"url": "dummy-action"}}""")).asJSON
-        .check(status.is(CREATED.intValue()))
+        .check(status.is(Created.intValue))
     )
   }
 
