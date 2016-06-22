@@ -3,7 +3,7 @@ import io.gatling.sbt.GatlingPlugin
 
 name          := "periphas"
 organization  := "com.github.scala-academy"
-version       := "1.0.0"
+version       := "1.0.1-SNAPSHOT"
 scalaVersion  := "2.11.7"
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
