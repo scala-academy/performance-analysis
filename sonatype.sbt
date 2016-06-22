@@ -32,6 +32,10 @@ pomExtra in Global := {
         <name>Effi Bennekers</name>
       </developer>
       <developer>
+        <id>Neojume</id>
+        <name>Steven Laan</name>
+      </developer>
+      <developer>
         <id>geerdink</id>
         <name>Bas Geerdink</name>
       </developer>
