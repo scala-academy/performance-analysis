@@ -23,7 +23,7 @@ class AdministratorSimulation extends Simulation with SpecBase {
     .acceptEncodingHeader("gzip, deflate")
     .userAgentHeader("Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0")
 
-  val scn = scenario("BasicSimulation").repeat(numberOfRepeats, "n") {
+  val scn = scenario("AdministratorSimulation").repeat(numberOfRepeats, "n") {
     val compId = "compId${n}"
     val metricKey = "metrickey"
     val regex = "(\\\\d+ ms)"
