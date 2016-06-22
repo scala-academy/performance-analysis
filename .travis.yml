@@ -30,5 +30,5 @@ notifications:
       - https://webhooks.gitter.im/e/980748d83fc35b082c35
 
 after_success:
-  - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "master" && sbt publish
+  - sbt publish
 
